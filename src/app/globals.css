@@ -1,26 +1,309 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* === BASE === */
+  --background: #fafbfc;
+  /* Soft white - reduces eye strain */
+  --foreground: #0f172a;
+  /* Slate-900 - strong contrast */
+
+  /* === PRIMARY (Blue - Trust & Professional) === */
+  --primary: #2563eb;
+  /* Blue-600 - vibrant but professional */
+  --primary-foreground: #ffffff;
+  --primary-hover: #1d4ed8;
+  /* Blue-700 - darker on hover */
+  --primary-light: #dbeafe;
+  /* Blue-50 - subtle backgrounds */
+  --primary-border: #93c5fd;
+  /* Blue-300 - soft borders */
+
+  /* === ACCENT (Amber - Energy & Movement) === */
+  --accent: #f59e0b;
+  /* Amber-500 - warm highlight */
+  --accent-foreground: #ffffff;
+  --accent-hover: #d97706;
+  /* Amber-600 */
+  --accent-light: #fef3c7;
+  /* Amber-50 */
+
+  /* === MUTED (Subtle UI Elements) === */
+  --muted: #f1f5f9;
+  /* Slate-100 - cards, backgrounds */
+  --muted-foreground: #64748b;
+  /* Slate-500 - secondary text */
+  --muted-hover: #e2e8f0;
+  /* Slate-200 - hover states */
+
+  /* === SEMANTIC COLORS === */
+  --destructive: #dc2626;
+  /* Red-600 - errors, delete */
+  --destructive-foreground: #ffffff;
+  --destructive-light: #fee2e2;
+  /* Red-50 */
+
+  --success: #16a34a;
+  /* Green-600 - balanced, professional */
+  --success-foreground: #ffffff;
+  --success-light: #dcfce7;
+  /* Green-50 */
+
+  --warning: #ea580c;
+  /* Orange-600 - alerts */
+  --warning-foreground: #ffffff;
+  --warning-light: #ffedd5;
+  /* Orange-50 */
+
+  --info: #0891b2;
+  /* Cyan-600 - informational */
+  --info-foreground: #ffffff;
+  --info-light: #cffafe;
+  /* Cyan-50 */
+
+  /* === SURFACES === */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+
+  /* === BORDERS & INPUTS === */
+  --border: #e2e8f0;
+  /* Slate-200 - default borders */
+  --input: #e2e8f0;
+  /* Slate-200 - input borders */
+  --ring: #2563eb;
+  /* Blue-600 - focus rings */
+
+  /* === RADIUS === */
+  --radius: 0.5rem;
+  /* 8px - modern but not too round */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+  --color-primary-border: var(--primary-border);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-light: var(--accent-light);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted-hover: var(--muted-hover);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-light: var(--destructive-light);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-light: var(--success-light);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-light: var(--warning-light);
+
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-light: var(--info-light);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar for Webkit */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #cbd5e1 0%, #94a3b8 100%);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
+}
+
+/* Custom Animations */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pulse-soft {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(10px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-10px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Utility Classes for Enhanced Interactions */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.hover-scale {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+.hover-glow {
+  transition: box-shadow 0.3s ease;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s ease-out;
+}
+
+/* Input Focus Enhancements */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}
+
+/* Smooth Transitions for Interactive Elements */
+button,
+a,
+input,
+textarea,
+select {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Card Hover Effects */
+.card-interactive {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.08), 0 8px 16px -4px rgba(0, 0, 0, 0.04);
+  border-color: rgba(37, 99, 235, 0.2);
+}
+
+/* Button Ripple Effect */
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-ripple:active::after {
+  width: 300px;
+  height: 300px;
+  opacity: 0;
+  transition: 0s;
 }

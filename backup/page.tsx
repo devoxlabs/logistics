@@ -424,7 +424,7 @@ export default function Home() {
   );
 
   return (
-    <div className='min-h-screen flex bg-background'>
+    <div className='min-h-screen flex bg-[#f5f7fb]'>
       {/* Desktop sidebar */}
       <div className='hidden md:block'>
         <Sidebar variant='desktop' selectedId={selectedId} onSelect={setSelectedId} />
@@ -455,14 +455,14 @@ export default function Home() {
                   <button
                     type='button'
                     onClick={() => openDialog('open')}
-                    className='rounded-md border border-primary-border bg-primary-light px-3 py-1.5 text-[11px] font-medium text-primary hover:bg-primary-light/80 cursor-pointer transition-colors'
+                    className='rounded-md border border-[#d4e3ff] bg-[#f5f8ff] px-3 py-1.5 text-[11px] font-medium text-[#214fbb] hover:bg-[#e7f0ff] cursor-pointer'
                   >
                     Open
                   </button>
                   <button
                     type='button'
                     onClick={() => openDialog('edit')}
-                    className='rounded-md border border-primary-border bg-primary-light px-3 py-1.5 text-[11px] font-medium text-primary hover:bg-primary-light/80 cursor-pointer transition-colors'
+                    className='rounded-md border border-[#d4e3ff] bg-[#f5f8ff] px-3 py-1.5 text-[11px] font-medium text-[#214fbb] hover:bg-[#e7f0ff] cursor-pointer'
                   >
                     Edit
                   </button>
@@ -486,7 +486,7 @@ export default function Home() {
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                       {/* Customer Name */}
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Customer Name
                         </label>
                         <input
@@ -495,7 +495,7 @@ export default function Home() {
                           onChange={(e) =>
                             handleCustomerFieldChange('customerName', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                         {fieldErrors.customerName && (
                           <p className='mt-1 text-[11px] text-rose-600'>
@@ -506,7 +506,7 @@ export default function Home() {
 
                       {/* City */}
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           City
                         </label>
                         <input
@@ -515,13 +515,13 @@ export default function Home() {
                           onChange={(e) =>
                             handleCustomerFieldChange('city', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       {/* Address */}
                       <div className='md:col-span-2'>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Address
                         </label>
                         <textarea
@@ -530,13 +530,13 @@ export default function Home() {
                             handleCustomerFieldChange('address', e.target.value)
                           }
                           rows={2}
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       {/* Country */}
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Country
                         </label>
                         <input
@@ -545,13 +545,13 @@ export default function Home() {
                           onChange={(e) =>
                             handleCustomerFieldChange('country', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       {/* Main / Other Commodities */}
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Main Commodity
                         </label>
                         <input
@@ -560,12 +560,12 @@ export default function Home() {
                           onChange={(e) =>
                             handleCustomerFieldChange('mainCommodity', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       <div className='md:col-span-2'>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Other Commodity
                         </label>
                         <input
@@ -574,13 +574,13 @@ export default function Home() {
                           onChange={(e) =>
                             handleCustomerFieldChange('otherCommodity', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       {/* Emails */}
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Email 1
                         </label>
                         <input
@@ -589,7 +589,7 @@ export default function Home() {
                           onChange={(e) =>
                             handleCustomerFieldChange('email1', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                         {fieldErrors.email && (
                           <p className='mt-1 text-[11px] text-rose-600'>
@@ -599,7 +599,7 @@ export default function Home() {
                       </div>
 
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Email 2
                         </label>
                         <input
@@ -608,12 +608,12 @@ export default function Home() {
                           onChange={(e) =>
                             handleCustomerFieldChange('email2', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Email 3
                         </label>
                         <input
@@ -622,13 +622,13 @@ export default function Home() {
                           onChange={(e) =>
                             handleCustomerFieldChange('email3', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       {/* Contacts */}
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Contact #1
                         </label>
                         <input
@@ -637,7 +637,7 @@ export default function Home() {
                           onChange={(e) =>
                             handleCustomerFieldChange('contact1', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                         {fieldErrors.contact && (
                           <p className='mt-1 text-[11px] text-rose-600'>
@@ -647,7 +647,7 @@ export default function Home() {
                       </div>
 
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Contact #2
                         </label>
                         <input
@@ -656,12 +656,12 @@ export default function Home() {
                           onChange={(e) =>
                             handleCustomerFieldChange('contact2', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Contact #3
                         </label>
                         <input
@@ -670,13 +670,13 @@ export default function Home() {
                           onChange={(e) =>
                             handleCustomerFieldChange('contact3', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       {/* IDs */}
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           NTN Number
                         </label>
                         <input
@@ -685,12 +685,12 @@ export default function Home() {
                           onChange={(e) =>
                             handleCustomerFieldChange('ntnNumber', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           GST Number
                         </label>
                         <input
@@ -699,12 +699,12 @@ export default function Home() {
                           onChange={(e) =>
                             handleCustomerFieldChange('gstNumber', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           SRB Number
                         </label>
                         <input
@@ -713,7 +713,7 @@ export default function Home() {
                           onChange={(e) =>
                             handleCustomerFieldChange('srbNumber', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
                     </div>
@@ -722,17 +722,17 @@ export default function Home() {
                       <h3 className='text-xs font-semibold text-slate-800 mb-2'>
                         Consignees &amp; Trade Licenses
                       </h3>
-                      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                      <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
                         {formValues.consignees.map((c, index) => (
                           <div
                             key={index}
-                            className='rounded-lg border-2 border-input bg-muted/30 p-4 space-y-3'
+                            className='rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 space-y-2'
                           >
                             <p className='text-[11px] font-medium text-slate-600'>
                               Consignee {index + 1}
                             </p>
                             <div>
-                              <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                              <label className='block text-[11px] text-slate-600 mb-1'>
                                 Name
                               </label>
                               <input
@@ -741,14 +741,14 @@ export default function Home() {
                                 onChange={(e) =>
                                   handleConsigneeChange(index, 'name', e.target.value)
                                 }
-                                className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                                className='w-full rounded-md border border-slate-200 px-2 py-1.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-[#6495ed] focus:border-[#6495ed]'
                               />
                             </div>
                             <div>
-                              <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                              <label className='block text-[11px] text-slate-600 mb-1'>
                                 Trade License #
                               </label>
-                              <input className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                              <input
                                 type='text'
                                 value={c.tradeLicense}
                                 onChange={(e) =>
@@ -770,21 +770,16 @@ export default function Home() {
                       <button
                         type='submit'
                         disabled={isSaving}
-                        className='inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-md hover:bg-primary-hover hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer transition-all duration-200'
+                        className='inline-flex w-full items-center justify-center rounded-md bg-[#34a85a] px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-[#2c8a4e] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer'
                       >
-                        {isSaving ? (
-                          <>
-                            <span className='h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
-                            <span>Saving...</span>
-                          </>
-                        ) : (
-                          <>
-                            <svg className='h-4 w-4' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                            </svg>
-                            <span>Save Customer</span>
-                          </>
-                        )}
+                      {isSaving ? (
+                        <span className='inline-flex items-center gap-2'>
+                          <span className='h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin' />
+                          <span>Saving...</span>
+                        </span>
+                      ) : (
+                        'Save Customer'
+                      )}
                       </button>
                       {saveError && (
                         <p className='mt-2 text-[11px] text-rose-600'>{saveError}</p>
@@ -809,14 +804,14 @@ export default function Home() {
                   <button
                     type='button'
                     onClick={() => openVendorDialog('open')}
-                    className='rounded-md border border-primary-border bg-primary-light px-3 py-1.5 text-[11px] font-medium text-primary hover:bg-primary-light/80 cursor-pointer transition-colors'
+                    className='rounded-md border border-[#d4e3ff] bg-[#f5f8ff] px-3 py-1.5 text-[11px] font-medium text-[#214fbb] hover:bg-[#e7f0ff] cursor-pointer'
                   >
                     Open
                   </button>
                   <button
                     type='button'
                     onClick={() => openVendorDialog('edit')}
-                    className='rounded-md border border-primary-border bg-primary-light px-3 py-1.5 text-[11px] font-medium text-primary hover:bg-primary-light/80 cursor-pointer transition-colors'
+                    className='rounded-md border border-[#d4e3ff] bg-[#f5f8ff] px-3 py-1.5 text-[11px] font-medium text-[#214fbb] hover:bg-[#e7f0ff] cursor-pointer'
                   >
                     Edit
                   </button>
@@ -839,7 +834,7 @@ export default function Home() {
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                       {/* Vendor Name */}
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Vendor Name
                         </label>
                         <input
@@ -848,7 +843,7 @@ export default function Home() {
                           onChange={(e) =>
                             handleVendorFieldChange('vendorName', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                         {vendorFieldErrors.vendorName && (
                           <p className='mt-1 text-[11px] text-rose-600'>
@@ -859,7 +854,7 @@ export default function Home() {
 
                       {/* City */}
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           City
                         </label>
                         <input
@@ -868,13 +863,13 @@ export default function Home() {
                           onChange={(e) =>
                             handleVendorFieldChange('city', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       {/* Address */}
                       <div className='md:col-span-2'>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Address
                         </label>
                         <textarea
@@ -883,13 +878,13 @@ export default function Home() {
                             handleVendorFieldChange('address', e.target.value)
                           }
                           rows={2}
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       {/* Country */}
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Country
                         </label>
                         <input
@@ -898,13 +893,13 @@ export default function Home() {
                           onChange={(e) =>
                             handleVendorFieldChange('country', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       {/* Emails */}
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Email 1
                         </label>
                         <input
@@ -913,7 +908,7 @@ export default function Home() {
                           onChange={(e) =>
                             handleVendorFieldChange('email1', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                         {vendorFieldErrors.email && (
                           <p className='mt-1 text-[11px] text-rose-600'>
@@ -922,7 +917,7 @@ export default function Home() {
                         )}
                       </div>
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Email 2
                         </label>
                         <input
@@ -931,11 +926,11 @@ export default function Home() {
                           onChange={(e) =>
                             handleVendorFieldChange('email2', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Email 3
                         </label>
                         <input
@@ -944,13 +939,13 @@ export default function Home() {
                           onChange={(e) =>
                             handleVendorFieldChange('email3', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       {/* Contacts */}
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Contact #1
                         </label>
                         <input
@@ -959,7 +954,7 @@ export default function Home() {
                           onChange={(e) =>
                             handleVendorFieldChange('contact1', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                         {vendorFieldErrors.contact && (
                           <p className='mt-1 text-[11px] text-rose-600'>
@@ -968,7 +963,7 @@ export default function Home() {
                         )}
                       </div>
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Contact #2
                         </label>
                         <input
@@ -977,11 +972,11 @@ export default function Home() {
                           onChange={(e) =>
                             handleVendorFieldChange('contact2', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Contact #3
                         </label>
                         <input
@@ -990,30 +985,30 @@ export default function Home() {
                           onChange={(e) =>
                             handleVendorFieldChange('contact3', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       {/* Type & Services */}
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
-                          Type
-                        </label>
-                        <select
-                          value={vendorFormValues.type}
-                          onChange={(e) =>
-                            handleVendorFieldChange('type', e.target.value)
-                          }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
-                        >
-                          <option value=''>Select type</option>
-                          <option value='Shipping Line'>Shipping Line</option>
-                          <option value='Transporter'>Transporter</option>
-                          <option value='Clearing Agent'>Clearing Agent</option>
-                        </select>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
+                        Type
+                      </label>
+                      <select
+                        value={vendorFormValues.type}
+                        onChange={(e) =>
+                          handleVendorFieldChange('type', e.target.value)
+                        }
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
+                      >
+                        <option value=''>Select type</option>
+                        <option value='Shipping Line'>Shipping Line</option>
+                        <option value='Transporter'>Transporter</option>
+                        <option value='Clearing Agent'>Clearing Agent</option>
+                      </select>
                       </div>
                       <div className='md:col-span-2'>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           Services
                         </label>
                         <textarea
@@ -1022,13 +1017,13 @@ export default function Home() {
                             handleVendorFieldChange('services', e.target.value)
                           }
                           rows={2}
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
 
                       {/* IDs */}
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           NTN Number
                         </label>
                         <input
@@ -1037,11 +1032,11 @@ export default function Home() {
                           onChange={(e) =>
                             handleVendorFieldChange('ntnNumber', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           GST Number
                         </label>
                         <input
@@ -1050,11 +1045,11 @@ export default function Home() {
                           onChange={(e) =>
                             handleVendorFieldChange('gstNumber', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
                       <div>
-                        <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                        <label className='block text-xs font-medium text-slate-700 mb-1'>
                           SRB Number
                         </label>
                         <input
@@ -1063,7 +1058,7 @@ export default function Home() {
                           onChange={(e) =>
                             handleVendorFieldChange('srbNumber', e.target.value)
                           }
-                          className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                          className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                         />
                       </div>
                     </div>
@@ -1072,20 +1067,15 @@ export default function Home() {
                       <button
                         type='submit'
                         disabled={vendorIsSaving}
-                        className='inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-md hover:bg-primary-hover hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer transition-all duration-200'
+                        className='inline-flex w-full items-center justify-center rounded-md bg-[#34a85a] px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-[#2c8a4e] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer'
                       >
                         {vendorIsSaving ? (
-                          <>
-                            <span className='h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
+                          <span className='inline-flex items-center gap-2'>
+                            <span className='h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin' />
                             <span>Saving...</span>
-                          </>
+                          </span>
                         ) : (
-                          <>
-                            <svg className='h-4 w-4' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                            </svg>
-                            <span>Save Vendor</span>
-                          </>
+                          'Save Vendor'
                         )}
                       </button>
                       {vendorSaveError && (
@@ -1146,7 +1136,7 @@ export default function Home() {
             }}
             onClose={() => setMobileOpen(false)}
           />
-        </div>
+      </div>
       </div>
 
       {/* Open dialog */}
@@ -1222,7 +1212,7 @@ export default function Home() {
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     {/* Customer Name */}
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Customer Name
                       </label>
                       <input
@@ -1233,13 +1223,13 @@ export default function Home() {
                             prev ? { ...prev, customerName: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     {/* City */}
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         City
                       </label>
                       <input
@@ -1250,13 +1240,13 @@ export default function Home() {
                             prev ? { ...prev, city: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     {/* Address */}
                     <div className='md:col-span-2'>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Address
                       </label>
                       <textarea
@@ -1267,13 +1257,13 @@ export default function Home() {
                           )
                         }
                         rows={2}
-                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     {/* Country */}
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Country
                       </label>
                       <input
@@ -1284,13 +1274,13 @@ export default function Home() {
                             prev ? { ...prev, country: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     {/* Main / Other Commodities */}
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Main Commodity
                       </label>
                       <input
@@ -1301,12 +1291,12 @@ export default function Home() {
                             prev ? { ...prev, mainCommodity: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     <div className='md:col-span-2'>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Other Commodity
                       </label>
                       <textarea
@@ -1319,13 +1309,13 @@ export default function Home() {
                           )
                         }
                         rows={2}
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     {/* Emails */}
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Email 1
                       </label>
                       <input
@@ -1336,11 +1326,11 @@ export default function Home() {
                             prev ? { ...prev, email1: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Email 2
                       </label>
                       <input
@@ -1351,11 +1341,11 @@ export default function Home() {
                             prev ? { ...prev, email2: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Email 3
                       </label>
                       <input
@@ -1366,13 +1356,13 @@ export default function Home() {
                             prev ? { ...prev, email3: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     {/* Contacts */}
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Contact #1
                       </label>
                       <input
@@ -1383,11 +1373,11 @@ export default function Home() {
                             prev ? { ...prev, contact1: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Contact #2
                       </label>
                       <input
@@ -1398,11 +1388,11 @@ export default function Home() {
                             prev ? { ...prev, contact2: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Contact #3
                       </label>
                       <input
@@ -1413,13 +1403,13 @@ export default function Home() {
                             prev ? { ...prev, contact3: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     {/* IDs */}
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         NTN Number
                       </label>
                       <input
@@ -1430,12 +1420,12 @@ export default function Home() {
                             prev ? { ...prev, ntnNumber: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         GST Number
                       </label>
                       <input
@@ -1446,12 +1436,12 @@ export default function Home() {
                             prev ? { ...prev, gstNumber: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         SRB Number
                       </label>
                       <input
@@ -1462,7 +1452,7 @@ export default function Home() {
                             prev ? { ...prev, srbNumber: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
                   </div>
@@ -1492,13 +1482,13 @@ export default function Home() {
                                 setEditValues((prev) =>
                                   prev
                                     ? {
-                                      ...prev,
-                                      consignees: prev.consignees.map((cg, i) =>
-                                        i === index
-                                          ? { ...cg, name: e.target.value }
-                                          : cg,
-                                      ),
-                                    }
+                                        ...prev,
+                                        consignees: prev.consignees.map((cg, i) =>
+                                          i === index
+                                            ? { ...cg, name: e.target.value }
+                                            : cg,
+                                        ),
+                                      }
                                     : prev,
                                 )
                               }
@@ -1516,13 +1506,13 @@ export default function Home() {
                                 setEditValues((prev) =>
                                   prev
                                     ? {
-                                      ...prev,
-                                      consignees: prev.consignees.map((cg, i) =>
-                                        i === index
-                                          ? { ...cg, tradeLicense: e.target.value }
-                                          : cg,
-                                      ),
-                                    }
+                                        ...prev,
+                                        consignees: prev.consignees.map((cg, i) =>
+                                          i === index
+                                            ? { ...cg, tradeLicense: e.target.value }
+                                            : cg,
+                                        ),
+                                      }
                                     : prev,
                                 )
                               }
@@ -1550,20 +1540,15 @@ export default function Home() {
                     <button
                       type='submit'
                       disabled={isEditingCustomer}
-                      className='inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-md hover:bg-primary-hover hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer transition-all duration-200'
+                      className='inline-flex items-center rounded-md bg-[#34a85a] px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-[#2c8a4e] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer'
                     >
                       {isEditingCustomer ? (
-                        <>
-                          <span className='h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
+                        <span className='inline-flex items-center gap-2'>
+                          <span className='h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin' />
                           <span>Saving...</span>
-                        </>
+                        </span>
                       ) : (
-                        <>
-                          <svg className='h-4 w-4' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                          </svg>
-                          <span>Save Changes</span>
-                        </>
+                        'Save Changes'
                       )}
                     </button>
                   </div>
@@ -1863,7 +1848,7 @@ export default function Home() {
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     {/* Vendor Name */}
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Vendor Name
                       </label>
                       <input
@@ -1874,13 +1859,13 @@ export default function Home() {
                             prev ? { ...prev, vendorName: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     {/* City */}
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         City
                       </label>
                       <input
@@ -1891,13 +1876,13 @@ export default function Home() {
                             prev ? { ...prev, city: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     {/* Address */}
                     <div className='md:col-span-2'>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Address
                       </label>
                       <textarea
@@ -1908,13 +1893,13 @@ export default function Home() {
                           )
                         }
                         rows={2}
-                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     {/* Country */}
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Country
                       </label>
                       <input
@@ -1925,13 +1910,13 @@ export default function Home() {
                             prev ? { ...prev, country: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     {/* Emails */}
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Email 1
                       </label>
                       <input
@@ -1942,11 +1927,11 @@ export default function Home() {
                             prev ? { ...prev, email1: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Email 2
                       </label>
                       <input
@@ -1957,11 +1942,11 @@ export default function Home() {
                             prev ? { ...prev, email2: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Email 3
                       </label>
                       <input
@@ -1972,13 +1957,13 @@ export default function Home() {
                             prev ? { ...prev, email3: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     {/* Contacts */}
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Contact #1
                       </label>
                       <input
@@ -1989,11 +1974,11 @@ export default function Home() {
                             prev ? { ...prev, contact1: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Contact #2
                       </label>
                       <input
@@ -2004,11 +1989,11 @@ export default function Home() {
                             prev ? { ...prev, contact2: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Contact #3
                       </label>
                       <input
@@ -2019,13 +2004,13 @@ export default function Home() {
                             prev ? { ...prev, contact3: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     {/* Type & Services */}
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Type
                       </label>
                       <select
@@ -2035,7 +2020,7 @@ export default function Home() {
                             prev ? { ...prev, type: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       >
                         <option value=''>Select type</option>
                         <option value='Shipping Line'>Shipping Line</option>
@@ -2044,7 +2029,7 @@ export default function Home() {
                       </select>
                     </div>
                     <div className='md:col-span-2'>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         Services
                       </label>
                       <textarea
@@ -2055,13 +2040,13 @@ export default function Home() {
                           )
                         }
                         rows={2}
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
 
                     {/* IDs */}
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         NTN Number
                       </label>
                       <input
@@ -2072,11 +2057,11 @@ export default function Home() {
                             prev ? { ...prev, ntnNumber: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         GST Number
                       </label>
                       <input
@@ -2087,11 +2072,11 @@ export default function Home() {
                             prev ? { ...prev, gstNumber: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
                     <div>
-                      <label className='block text-sm font-medium text-foreground/80 mb-1.5'>
+                      <label className='block text-xs font-medium text-slate-700 mb-1'>
                         SRB Number
                       </label>
                       <input
@@ -2102,7 +2087,7 @@ export default function Home() {
                             prev ? { ...prev, srbNumber: e.target.value } : prev,
                           )
                         }
-                        className='w-full rounded-lg border-2 border-input bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/60 hover:border-primary/40 hover:bg-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all duration-200'
+                        className='w-full rounded-md border border-slate-200 px-3 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
                       />
                     </div>
                   </div>
@@ -2389,7 +2374,7 @@ function DialogShell(props: {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder='Search by any field (name, city, commodity, consignee, etc.)'
-            className='w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary'
+            className='w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6495ed] focus:border-[#6495ed]'
           />
         </div>
         <div className='flex-1 overflow-auto px-4 py-3'>{children}</div>
