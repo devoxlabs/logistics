@@ -312,7 +312,9 @@ export default function Home() {
 
   const beginEditCustomer = (customer: CustomerProfile) => {
     setSelectedDialogCustomer(customer);
-    const { id, createdAt, ...rest } = customer;
+    const { id: _id, createdAt: _createdAt, ...rest } = customer;
+    void _id;
+    void _createdAt;
     setEditValues({ ...rest });
     setDialogStep('detail');
   };
@@ -343,7 +345,9 @@ export default function Home() {
 
   const beginEditVendor = (vendor: VendorProfile) => {
     setSelectedDialogVendor(vendor);
-    const { id, createdAt, ...rest } = vendor;
+    const { id: _id, createdAt: _createdAt, ...rest } = vendor;
+    void _id;
+    void _createdAt;
     setEditVendorValues({ ...rest });
     setVendorDialogStep('detail');
   };

@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { getFirebaseDb } from '@/lib/firebase';
 import { VendorFormValues, VendorProfile } from '@/models/profiles';
+import { formatTimestamp, readString } from '@/lib/firestoreUtils';
 
 // Collection name used in Firestore (can be changed centrally).
 const VENDORS_COLLECTION = 'vendors';
@@ -24,27 +25,25 @@ export async function listVendors(): Promise<VendorProfile[]> {
   const snap = await getDocs(collection(db, VENDORS_COLLECTION));
 
   const items: VendorProfile[] = snap.docs.map((docSnap) => {
-    const data = docSnap.data() as any;
+    const data = docSnap.data() as Record<string, unknown>;
     return {
       id: docSnap.id,
-      createdAt: data.createdAt?.toDate
-        ? data.createdAt.toDate().toLocaleString()
-        : data.createdAt ?? '',
-      vendorName: data.vendorName ?? '',
-      address: data.address ?? '',
-      city: data.city ?? '',
-      country: data.country ?? '',
-      email1: data.email1 ?? '',
-      email2: data.email2 ?? '',
-      email3: data.email3 ?? '',
-      contact1: data.contact1 ?? '',
-      contact2: data.contact2 ?? '',
-      contact3: data.contact3 ?? '',
-      type: data.type ?? '',
-      services: data.services ?? '',
-      ntnNumber: data.ntnNumber ?? '',
-      gstNumber: data.gstNumber ?? '',
-      srbNumber: data.srbNumber ?? '',
+      createdAt: formatTimestamp(data.createdAt),
+      vendorName: readString(data.vendorName),
+      address: readString(data.address),
+      city: readString(data.city),
+      country: readString(data.country),
+      email1: readString(data.email1),
+      email2: readString(data.email2),
+      email3: readString(data.email3),
+      contact1: readString(data.contact1),
+      contact2: readString(data.contact2),
+      contact3: readString(data.contact3),
+      type: readString(data.type),
+      services: readString(data.services),
+      ntnNumber: readString(data.ntnNumber),
+      gstNumber: readString(data.gstNumber),
+      srbNumber: readString(data.srbNumber),
     };
   });
 

@@ -16,8 +16,10 @@ import { getFirebaseDb } from '@/lib/firebase';
 import {
   CustomerFormValues,
   CustomerProfile,
+  Consignee,
   emptyCustomerForm,
 } from '@/models/profiles';
+import { formatTimestamp, readString } from '@/lib/firestoreUtils';
 
 // Collection name used in Firestore (can be changed centrally).
 const CUSTOMERS_COLLECTION = 'customers';
@@ -29,36 +31,33 @@ export async function listCustomers(): Promise<CustomerProfile[]> {
   const snap = await getDocs(collection(db, CUSTOMERS_COLLECTION));
 
   const items: CustomerProfile[] = snap.docs.map((docSnap) => {
-    const data = docSnap.data() as any;
+    const data = docSnap.data() as Record<string, unknown>;
+    const consignees = Array.isArray(data.consignees)
+      ? (data.consignees as Array<Record<string, unknown>>).map<Consignee>((c) => ({
+          name: readString(c?.name),
+          tradeLicense: readString(c?.tradeLicense),
+        }))
+      : emptyCustomerForm().consignees;
+
     return {
       id: docSnap.id,
-      // createdAt is stored as a Firestore Timestamp; convert it to a
-      // human‑readable string for display. Fallback to raw value or empty.
-      createdAt: data.createdAt?.toDate
-        ? data.createdAt.toDate().toLocaleString()
-        : data.createdAt ?? '',
-      customerName: data.customerName ?? '',
-      address: data.address ?? '',
-      city: data.city ?? '',
-      country: data.country ?? '',
-      email1: data.email1 ?? '',
-      email2: data.email2 ?? '',
-      email3: data.email3 ?? '',
-      contact1: data.contact1 ?? '',
-      contact2: data.contact2 ?? '',
-      contact3: data.contact3 ?? '',
-      mainCommodity: data.mainCommodity ?? '',
-      otherCommodity: data.otherCommodity ?? '',
-      ntnNumber: data.ntnNumber ?? '',
-      gstNumber: data.gstNumber ?? '',
-      srbNumber: data.srbNumber ?? '',
-      // Normalise consignees and ensure the UI always has 12 rows.
-      consignees: Array.isArray(data.consignees)
-        ? (data.consignees as any[]).map((c) => ({
-            name: c.name ?? '',
-            tradeLicense: c.tradeLicense ?? '',
-          }))
-        : emptyCustomerForm().consignees,
+      createdAt: formatTimestamp(data.createdAt),
+      customerName: readString(data.customerName),
+      address: readString(data.address),
+      city: readString(data.city),
+      country: readString(data.country),
+      email1: readString(data.email1),
+      email2: readString(data.email2),
+      email3: readString(data.email3),
+      contact1: readString(data.contact1),
+      contact2: readString(data.contact2),
+      contact3: readString(data.contact3),
+      mainCommodity: readString(data.mainCommodity),
+      otherCommodity: readString(data.otherCommodity),
+      ntnNumber: readString(data.ntnNumber),
+      gstNumber: readString(data.gstNumber),
+      srbNumber: readString(data.srbNumber),
+      consignees,
     };
   });
 

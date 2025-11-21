@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import { getFirebaseAuth } from '@/lib/firebase';
 import {
   ArrowDownToLine,
@@ -10,7 +10,6 @@ import {
   BarChart3,
   BookOpenText,
   BookUser,
-  Building2,
   CircleUserRound,
   ClipboardList,
   CreditCard,
@@ -27,6 +26,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  FilePlus,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -83,8 +83,10 @@ const MENU: MenuItem[] = [
     label: 'Finance',
     Icon: WalletCards,
     children: [
+
       { id: 'invoice', label: 'Invoice', Icon: FileText },
       { id: 'billing', label: 'Billing', Icon: CreditCard },
+      { id: 'ledger-entry', label: 'Ledger Entry', Icon: FilePlus },
       { id: 'customer-ledger', label: 'Customer Ledger', Icon: BookUser },
       { id: 'vendor-ledger', label: 'Vendor Ledger', Icon: FileSpreadsheet },
       { id: 'general-ledger', label: 'General Ledger', Icon: BookOpenText },
@@ -109,7 +111,7 @@ export default function Sidebar({
   onSelect,
   onClose,
 }: SidebarProps) {
-  const [activeId, setActiveId] = useState<string>(selectedId ?? 'add-jobs');
+  const [internalActiveId, setInternalActiveId] = useState<string>(selectedId ?? 'add-jobs');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     'add-jobs': true,
     operations: true,
@@ -123,13 +125,13 @@ export default function Sidebar({
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
 
-    const resolveUserName = (user: any) => {
+    const resolveUserName = (user: User | null) => {
       if (!user) {
         setUserName(null);
         return;
       }
-      const fromDisplayName = user.displayName as string | null | undefined;
-      const fromEmail = (user.email as string | null | undefined) ?? undefined;
+      const fromDisplayName = user.displayName ?? null;
+      const fromEmail = user.email ?? undefined;
       const fromEmailPrefix = fromEmail ? fromEmail.split('@')[0] : undefined;
 
       setUserName(fromDisplayName || fromEmailPrefix || fromEmail || null);
@@ -154,14 +156,12 @@ export default function Sidebar({
     };
   }, []);
 
-  useEffect(() => {
-    if (selectedId) {
-      setActiveId(selectedId);
-    }
-  }, [selectedId]);
+  const activeId = selectedId ?? internalActiveId;
 
   const handleItemClick = (item: MenuItem) => {
-    setActiveId(item.id);
+    if (!selectedId) {
+      setInternalActiveId(item.id);
+    }
     if (onSelect) onSelect(item.id);
   };
 

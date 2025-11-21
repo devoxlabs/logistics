@@ -105,8 +105,9 @@ export default function SignupPage() {
       await signup(name.trim(), email.trim(), password);
       rateLimiter.clear('signup'); // Clear on successful signup
       router.replace('/');
-    } catch (err: any) {
-      const errorMessage = err.message ?? 'Failed to sign up';
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to sign up';
 
       // Provide user-friendly error messages
       if (errorMessage.includes('email-already-in-use')) {

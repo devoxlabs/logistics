@@ -65,8 +65,9 @@ export default function LoginPage() {
       await login(email.trim(), password);
       rateLimiter.clear('login'); // Clear on successful login
       router.replace('/');
-    } catch (err: any) {
-      const errorMessage = err.message ?? 'Failed to login';
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to login';
 
       // Provide user-friendly error messages
       if (errorMessage.includes('user-not-found')) {
