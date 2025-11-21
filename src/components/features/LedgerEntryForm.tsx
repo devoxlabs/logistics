@@ -149,6 +149,22 @@ export default function LedgerEntryForm() {
     const selectedCustomer = customers.find((c) => c.id === formValues.customerId);
     const selectedVendor = vendors.find((v) => v.id === formValues.vendorId);
 
+    const pickPrimaryValue = (values: Array<string | undefined | null>) =>
+        values.find((value) => value && value.trim().length > 0) ?? '-';
+
+    const customerContact = selectedCustomer
+        ? pickPrimaryValue([selectedCustomer.contact1, selectedCustomer.contact2, selectedCustomer.contact3])
+        : '-';
+    const customerEmail = selectedCustomer
+        ? pickPrimaryValue([selectedCustomer.email1, selectedCustomer.email2, selectedCustomer.email3])
+        : '-';
+    const vendorContact = selectedVendor
+        ? pickPrimaryValue([selectedVendor.contact1, selectedVendor.contact2, selectedVendor.contact3])
+        : '-';
+    const vendorEmail = selectedVendor
+        ? pickPrimaryValue([selectedVendor.email1, selectedVendor.email2, selectedVendor.email3])
+        : '-';
+
     return (
         <div className="h-full min-h-[60vh] md:min-h-full rounded-xl border border-slate-200 bg-white flex flex-col">
             <FeatureHeader
@@ -241,12 +257,12 @@ export default function LedgerEntryForm() {
                         </select>
                         {entryType === 'customer' && selectedCustomer && (
                             <p className="text-xs text-slate-500">
-                                Contact: {selectedCustomer.contact} | Email: {selectedCustomer.email}
+                                Contact: {customerContact} | Email: {customerEmail}
                             </p>
                         )}
                         {entryType === 'vendor' && selectedVendor && (
                             <p className="text-xs text-slate-500">
-                                Contact: {selectedVendor.contact} | Email: {selectedVendor.email}
+                                Contact: {vendorContact} | Email: {vendorEmail}
                             </p>
                         )}
                     </div>
