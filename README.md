@@ -1,6 +1,6 @@
 # Logistics Management System
 
-A comprehensive logistics management application built with **Next.js 15 (App Router) + TypeScript + Tailwind CSS + Firebase**.
+A comprehensive logistics management application built with **Next.js 16 (App Router) + TypeScript + Tailwind CSS + Firebase**.
 
 This document serves as a complete guide for developers who will maintain, extend, or migrate this application. It covers the architecture, security considerations, feature implementation, and database migration strategies.
 
