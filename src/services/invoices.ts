@@ -12,6 +12,7 @@ import {
     query,
     where,
     orderBy,
+    getDoc,
 } from 'firebase/firestore';
 import { getFirebaseDb } from '@/lib/firebase';
 import { InvoiceFormValues, Invoice } from '@/models/invoices';
@@ -126,6 +127,14 @@ export async function listInvoicesByVendor(vendorId: string): Promise<Invoice[]>
     });
 
     return items;
+}
+
+export async function getInvoiceById(id: string): Promise<Invoice | null> {
+    const db = getFirebaseDb();
+    const ref = doc(db, INVOICES_COLLECTION, id);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return null;
+    return mapInvoiceDoc(snap.data() as Record<string, unknown>, snap.id);
 }
 
 // Create invoice

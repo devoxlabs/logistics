@@ -17,7 +17,7 @@ export async function generateProfitLoss(
     data.startDate = startDate;
     data.endDate = endDate;
 
-    const [invoices, expenses] = await Promise.all([listInvoices(), listExpenses()]);
+    const [invoices, expenses, vendorBills] = await Promise.all([listInvoices(), listExpenses(), listVendorBills()]);
     const start = new Date(startDate);
     const end = new Date(endDate);
 
@@ -57,6 +57,35 @@ export async function generateProfitLoss(
                     break;
                 case 'travel':
                 case 'miscellaneous':
+                default:
+                    data.operatingExpenses.other += amount;
+                    break;
+            }
+        });
+
+    vendorBills
+        .filter((bill) => {
+            const date = new Date(bill.date);
+            return date >= start && date <= end;
+        })
+        .forEach((bill) => {
+            if (bill.invoiceId) {
+                return;
+            }
+            const amount = convertCurrency(bill.amount || 0, bill.currency || 'USD', 'USD');
+            switch (bill.category) {
+                case 'fuel':
+                case 'airline_charges':
+                    data.costOfServices.freightCosts += amount;
+                    break;
+                case 'port_fees':
+                case 'customs':
+                    data.costOfServices.handlingCosts += amount;
+                    break;
+                case 'warehousing':
+                    data.costOfServices.handlingCosts += amount;
+                    break;
+                case 'logistics_overheads':
                 default:
                     data.operatingExpenses.other += amount;
                     break;
@@ -115,7 +144,18 @@ export async function generateBalanceSheet(asOfDate: string): Promise<BalanceShe
             return sum + Math.max(total - paid, 0);
         }, 0);
 
-    const vendorPayables = vendorBills.reduce((sum, bill) => {
+    const vendorInvoicePayables = invoices
+        .filter((invoice) => (invoice.partyType ?? 'customer') === 'vendor')
+        .reduce((sum, invoice) => {
+            const total = convertCurrency(invoice.total || 0, invoice.currency || 'USD', 'USD');
+            const paid = convertCurrency(invoice.paidAmount || 0, invoice.currency || 'USD', 'USD');
+            return sum + Math.max(total - paid, 0);
+        }, 0);
+
+    const vendorBillPayables = vendorBills.reduce((sum, bill) => {
+        if (bill.invoiceId) {
+            return sum;
+        }
         const total = convertCurrency(bill.amount || 0, bill.currency || 'USD', 'USD');
         return sum + (bill.status === 'paid' ? 0 : total);
     }, 0);
@@ -126,7 +166,7 @@ export async function generateBalanceSheet(asOfDate: string): Promise<BalanceShe
         return sum + total;
     }, 0);
 
-    const payables = vendorPayables;
+    const payables = vendorInvoicePayables + vendorBillPayables;
 
     data.assets.currentAssets.accountsReceivable = receivables;
     data.assets.currentAssets.total = receivables;

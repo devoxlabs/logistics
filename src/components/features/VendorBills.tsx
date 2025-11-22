@@ -18,8 +18,8 @@ import {
 } from '@/services/vendorBills';
 import { listVendors } from '@/services/vendors';
 import { VendorProfile } from '@/models/profiles';
-import { formatCurrencyValue, getCurrencyOptions } from '@/lib/currency';
-import { listInvoicesByVendor } from '@/services/invoices';
+import { convertCurrency, formatCurrencyValue, getCurrencyOptions } from '@/lib/currency';
+import { getInvoiceById, listInvoicesByVendor, updateInvoice } from '@/services/invoices';
 import { Invoice } from '@/models/invoices';
 
 export default function VendorBills() {
@@ -75,25 +75,21 @@ export default function VendorBills() {
     const handleFieldChange = <K extends keyof VendorBillFormValues>(field: K, value: VendorBillFormValues[K]) => {
         setFormValues((prev) => ({ ...prev, [field]: value }));
         if (field === 'vendorId') {
-            if (!value) {
-                setVendorInvoices([]);
-                setLinkedInvoiceId('');
-                setSelectedInvoice(null);
-            } else {
-                const vendor = vendors.find((v) => v.id === value);
-                if (vendor) {
-                    setFormValues((prev) => ({
-                        ...prev,
-                        vendorId: vendor.id,
-                        vendorName: vendor.vendorName,
-                    }));
-                }
-                if (!editMode && !formValues.jobNumber) {
-                    setFormValues((prev) => ({
-                        ...prev,
-                        jobNumber: generateVendorJobNumber(),
-                    }));
-                }
+            const vendor = vendors.find((v) => v.id === value);
+            setFormValues((prev) => ({
+                ...prev,
+                vendorId: vendor?.id ?? '',
+                vendorName: vendor?.vendorName ?? '',
+                invoiceId: '',
+            }));
+            setVendorInvoices([]);
+            setLinkedInvoiceId('');
+            setSelectedInvoice(null);
+            if (value && !editMode && !formValues.jobNumber) {
+                setFormValues((prev) => ({
+                    ...prev,
+                    jobNumber: generateVendorJobNumber(),
+                }));
             }
         }
         if (field === 'status' && value === 'paid' && !formValues.paidDate) {
@@ -135,8 +131,82 @@ export default function VendorBills() {
                 invoiceId: invoice.id,
                 billNumber: invoice.invoiceNumber || prev.billNumber,
                 currency: invoice.currency || prev.currency,
-                amount: invoice.total || prev.amount,
             }));
+        }
+    };
+
+    const syncInvoiceFromBill = async (billValues: VendorBillFormValues, billId?: string) => {
+        if (!billValues.invoiceId) return;
+        let invoice =
+            (selectedInvoice && selectedInvoice.id === billValues.invoiceId
+                ? selectedInvoice
+                : vendorInvoices.find((inv) => inv.id === billValues.invoiceId)) || null;
+        if (!invoice) {
+            invoice = await getInvoiceById(billValues.invoiceId);
+        }
+        if (!invoice) return;
+
+        const billCurrency = billValues.currency || 'USD';
+        const invoiceCurrency = invoice.currency || 'USD';
+        const convertedAmount = convertCurrency(billValues.amount || 0, billCurrency, invoiceCurrency);
+        const lineItemId = billValues.jobNumber || billValues.billNumber || billValues.invoiceId;
+        const descriptor = `${billValues.jobNumber || billValues.billNumber} �?� Vendor Bill`;
+
+        const newLineItem = {
+            id: lineItemId,
+            description: descriptor.trim(),
+            quantity: 1,
+            unitPrice: convertedAmount,
+            amount: convertedAmount,
+        };
+
+        const existingItems = invoice.lineItems ?? [];
+        const filteredItems = existingItems.filter((item) => item.id !== newLineItem.id);
+        const lineItems = [...filteredItems, newLineItem];
+        const subtotal = lineItems.reduce((sum, item) => sum + item.amount, 0);
+        const taxAmount = subtotal * (invoice.taxRate / 100);
+        const total = subtotal + taxAmount - invoice.discount;
+
+        const siblingBills = bills
+            .filter((entry) => entry.invoiceId === billValues.invoiceId && entry.id !== billId)
+            .map((entry) => ({
+                amount: entry.amount,
+                currency: entry.currency,
+                status: entry.status,
+            }));
+
+        const paidFromBills = [...siblingBills, { amount: billValues.amount, currency: billValues.currency, status: billValues.status }]
+            .filter((entry) => entry.status === 'paid')
+            .reduce((sum, entry) => sum + convertCurrency(entry.amount || 0, entry.currency || 'USD', invoiceCurrency), 0);
+
+        const updatedInvoice: Invoice = {
+            ...invoice,
+            lineItems,
+            subtotal,
+            taxAmount,
+            total,
+            status: invoice.status,
+            paidAmount: Math.min(paidFromBills, total),
+        };
+
+        if (updatedInvoice.paidAmount >= total && total > 0) {
+            updatedInvoice.status = 'paid';
+            updatedInvoice.paidAmount = total;
+            updatedInvoice.paidDate = updatedInvoice.paidDate || new Date().toISOString().split('T')[0];
+        } else if (updatedInvoice.paidAmount > 0) {
+            updatedInvoice.status = 'partially_paid';
+            updatedInvoice.paidDate = '';
+        } else if (updatedInvoice.status === 'paid') {
+            updatedInvoice.status = 'sent';
+            updatedInvoice.paidDate = '';
+        }
+
+        const { id, ...payload } = updatedInvoice;
+        await updateInvoice(id, payload);
+
+        setVendorInvoices((prev) => prev.map((inv) => (inv.id === id ? updatedInvoice : inv)));
+        if (selectedInvoice?.id === id) {
+            setSelectedInvoice(updatedInvoice);
         }
     };
 
@@ -164,22 +234,23 @@ export default function VendorBills() {
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
         if (!formValues.vendorId) return;
-        if (!formValues.jobNumber) {
-            handleFieldChange('jobNumber', generateVendorJobNumber());
-        }
+
+        const payloadValues: VendorBillFormValues = {
+            ...formValues,
+            jobNumber: formValues.jobNumber || generateVendorJobNumber(),
+        };
+
         try {
             setIsSaving(true);
             if (editMode && selectedBillId) {
-                await updateVendorBill(selectedBillId, formValues);
-                setBills((prev) => prev.map((bill) => (bill.id === selectedBillId ? { ...bill, ...formValues } : bill)));
+                await updateVendorBill(selectedBillId, payloadValues);
+                setBills((prev) => prev.map((bill) => (bill.id === selectedBillId ? { ...bill, ...payloadValues } : bill)));
             } else {
-                const payload = {
-                    ...formValues,
-                    jobNumber: formValues.jobNumber || generateVendorJobNumber(),
-                };
-                const created = await createVendorBill(payload);
+                const created = await createVendorBill(payloadValues);
                 setBills((prev) => [created, ...prev]);
             }
+
+            await syncInvoiceFromBill(payloadValues, editMode ? selectedBillId : undefined);
             resetForm();
         } catch (error) {
             console.error('Failed to save vendor bill', error);
@@ -193,9 +264,26 @@ export default function VendorBills() {
         const paidDate = new Date().toISOString().split('T')[0];
         try {
             await updateVendorBill(bill.id, { status: 'paid', paidDate });
+            const updatedBill: VendorBill = { ...bill, status: 'paid', paidDate };
             setBills((prev) =>
-                prev.map((entry) => (entry.id === bill.id ? { ...entry, status: 'paid', paidDate } : entry)),
+                prev.map((entry) => (entry.id === bill.id ? updatedBill : entry)),
             );
+            const billValues: VendorBillFormValues = {
+                billNumber: updatedBill.billNumber,
+                jobNumber: updatedBill.jobNumber,
+                vendorId: updatedBill.vendorId,
+                vendorName: updatedBill.vendorName,
+                invoiceId: updatedBill.invoiceId,
+                amount: updatedBill.amount,
+                currency: updatedBill.currency,
+                date: updatedBill.date,
+                dueDate: updatedBill.dueDate,
+                description: updatedBill.description,
+                status: updatedBill.status,
+                category: updatedBill.category,
+                paidDate,
+            };
+            await syncInvoiceFromBill(billValues, bill.id);
         } catch (error) {
             console.error('Failed to mark bill as paid', error);
         }
