@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { ImportShipment } from '@/models/shipments';
 import { listImportShipments } from '@/services/shipments';
 import FeatureHeader from '@/components/ui/FeatureHeader';
+import { convertCurrency, formatCurrencyValue, getCurrencyOptions } from '@/lib/currency';
 
 export default function ImportShipmentDetailReport() {
     const [shipments, setShipments] = useState<ImportShipment[]>([]);
@@ -12,6 +13,7 @@ export default function ImportShipmentDetailReport() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [displayCurrency, setDisplayCurrency] = useState('USD');
 
     useEffect(() => {
         loadShipments();
@@ -62,12 +64,19 @@ export default function ImportShipmentDetailReport() {
         return colors[status] || 'bg-gray-100 text-gray-700 border-gray-200';
     };
 
+    const parseCharge = (value: string) => parseFloat(value || '0') || 0;
+    const convertCharge = (value: string, currency: string) =>
+        convertCurrency(parseCharge(value), currency || 'USD', displayCurrency);
+
     // Calculate statistics
     const stats = {
         total: shipments.length,
         inTransit: shipments.filter((s) => s.status === 'In Transit').length,
         delivered: shipments.filter((s) => s.status === 'Delivered').length,
-        totalCharges: shipments.reduce((sum, s) => sum + (parseFloat(s.totalCharges) || 0), 0),
+        totalCharges: filteredShipments.reduce(
+            (sum, s) => sum + convertCharge(s.totalCharges || '0', s.currency || 'USD'),
+            0
+        ),
     };
 
     return (
@@ -108,6 +117,19 @@ export default function ImportShipmentDetailReport() {
                             <option value="Delivered">Delivered</option>
                         </select>
                     </div>
+                    <div className="w-full md:w-48">
+                        <select
+                            value={displayCurrency}
+                            onChange={(e) => setDisplayCurrency(e.target.value)}
+                            className="w-full rounded-lg border-2 border-input bg-white px-4 py-2 text-sm hover:border-primary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                        >
+                            {getCurrencyOptions().map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    Display in {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -129,7 +151,7 @@ export default function ImportShipmentDetailReport() {
                     <div className="bg-white rounded-lg border border-slate-200 p-3 md:p-4">
                         <div className="text-xs text-slate-500 mb-1">Total Charges</div>
                         <div className="text-xl md:text-2xl font-bold text-primary">
-                            ${stats.totalCharges.toLocaleString()}
+                            {formatCurrencyValue(stats.totalCharges, displayCurrency)}
                         </div>
                     </div>
                 </div>
@@ -213,7 +235,10 @@ export default function ImportShipmentDetailReport() {
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3 text-sm text-right font-medium text-slate-900">
-                                                ${parseFloat(shipment.totalCharges || '0').toLocaleString()}
+                                                {formatCurrencyValue(
+                                                    convertCharge(shipment.totalCharges || '0', shipment.currency || 'USD'),
+                                                    displayCurrency
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
@@ -254,7 +279,10 @@ export default function ImportShipmentDetailReport() {
                                         <div className="flex justify-between pt-2 border-t border-slate-100">
                                             <span className="text-slate-500">Charges:</span>
                                             <span className="text-slate-900 font-semibold">
-                                                ${parseFloat(shipment.totalCharges || '0').toLocaleString()}
+                                                {formatCurrencyValue(
+                                                    convertCharge(shipment.totalCharges || '0', shipment.currency || 'USD'),
+                                                    displayCurrency
+                                                )}
                                             </span>
                                         </div>
                                     </div>

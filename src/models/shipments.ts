@@ -22,6 +22,7 @@ export type ImportShipmentFormValues = {
     jobNumber: string; // Auto-generated IMP-YYYY-XXXX
     billOfLading: string;
     containerNumber: string;
+    mode: 'shipping' | 'flight';
 
     // Customer & Consignee
     customerId: string;
@@ -83,6 +84,7 @@ export type ExportShipmentFormValues = {
     bookingNumber: string;
     billOfLading: string;
     containerNumber: string;
+    mode: 'shipping' | 'flight';
 
     // Shipper & Consignee
     shipperId: string; // Reference to customer
@@ -149,6 +151,7 @@ export const emptyImportShipmentForm = (): ImportShipmentFormValues => ({
     jobNumber: '',
     billOfLading: '',
     containerNumber: '',
+    mode: 'shipping',
     customerId: '',
     customerName: '',
     consigneeName: '',
@@ -188,6 +191,7 @@ export const emptyExportShipmentForm = (): ExportShipmentFormValues => ({
     bookingNumber: '',
     billOfLading: '',
     containerNumber: '',
+    mode: 'shipping',
     shipperId: '',
     shipperName: '',
     shipperAddress: '',

@@ -17,6 +17,9 @@ import {
 import { listCustomers } from '@/services/customers';
 import { CustomerProfile } from '@/models/profiles';
 import FeatureHeader from '@/components/ui/FeatureHeader';
+import { listInvoicesByCustomer } from '@/services/invoices';
+import { Invoice } from '@/models/invoices';
+import { formatCurrencyValue, getCurrencyOptions } from '@/lib/currency';
 
 export default function ImportShipmentForm() {
     const [shipments, setShipments] = useState<ImportShipment[]>([]);
@@ -29,6 +32,9 @@ export default function ImportShipmentForm() {
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
     const [editMode, setEditMode] = useState(false);
     const [selectedShipmentId, setSelectedShipmentId] = useState('');
+    const [customerInvoices, setCustomerInvoices] = useState<Invoice[]>([]);
+    const [linkedInvoiceId, setLinkedInvoiceId] = useState('');
+    const [invoiceLoading, setInvoiceLoading] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -85,6 +91,22 @@ export default function ImportShipmentForm() {
         }
     };
 
+    useEffect(() => {
+        if (!formValues.customerId) {
+            setCustomerInvoices([]);
+            setLinkedInvoiceId('');
+            return;
+        }
+        setInvoiceLoading(true);
+        listInvoicesByCustomer(formValues.customerId)
+            .then((data) => {
+                setCustomerInvoices(data);
+                setLinkedInvoiceId('');
+            })
+            .catch((error) => console.error('Failed to load invoices', error))
+            .finally(() => setInvoiceLoading(false));
+    }, [formValues.customerId]);
+
     const handleLoadShipment = () => {
         if (!selectedShipmentId) return;
 
@@ -101,6 +123,20 @@ export default function ImportShipmentForm() {
             setEditMode(true);
             setSaveMessage(null);
             setSaveError(null);
+        }
+    };
+
+    const handleInvoiceSelect = (invoiceId: string) => {
+        setLinkedInvoiceId(invoiceId);
+        if (!invoiceId) return;
+        const invoice = customerInvoices.find((inv) => inv.id === invoiceId);
+        if (invoice) {
+            setFormValues((prev) => ({
+                ...prev,
+                invoiceNumber: invoice.invoiceNumber,
+                invoiceValue: invoice.total.toFixed(2),
+                currency: invoice.currency || prev.currency,
+            }));
         }
     };
 
@@ -261,9 +297,44 @@ export default function ImportShipmentForm() {
                                     type="text"
                                     value={formValues.containerNumber}
                                     onChange={(e) => handleFieldChange('containerNumber', e.target.value)}
-                                    className="w-full rounded-lg border-2 border-input bg-white px-4 py-2.5 text-sm hover:border-primary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                                    className="w-full rounded-lg border-2 border-input bg-white px-4 py-2.5 text-sm hover:border-primary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 disabled:bg-slate-100 disabled:text-slate-400"
                                     placeholder="e.g., ABCD1234567"
+                                    disabled={formValues.mode === 'flight'}
                                 />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-foreground/80 mb-1.5">
+                                    Mode
+                                </label>
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleFieldChange('mode', 'shipping')}
+                                        className={`flex-1 rounded-lg border px-3 py-2 text-sm ${
+                                            formValues.mode === 'shipping'
+                                                ? 'border-primary bg-primary/10 text-primary font-semibold'
+                                                : 'border-slate-200 text-slate-600'
+                                        }`}
+                                    >
+                                        Shipping
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleFieldChange('mode', 'flight')}
+                                        className={`flex-1 rounded-lg border px-3 py-2 text-sm ${
+                                            formValues.mode === 'flight'
+                                                ? 'border-primary bg-primary/10 text-primary font-semibold'
+                                                : 'border-slate-200 text-slate-600'
+                                        }`}
+                                    >
+                                        Flight
+                                    </button>
+                                </div>
+                                {formValues.mode === 'flight' && (
+                                    <p className="text-[11px] text-slate-500 mt-1">
+                                        Container number disabled for flight shipments.
+                                    </p>
+                                )}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-foreground/80 mb-1.5">
@@ -567,6 +638,26 @@ export default function ImportShipmentForm() {
                                 <label className="block text-sm font-medium text-foreground/80 mb-1.5">
                                     Invoice Number
                                 </label>
+                                <div className="mb-2">
+                                    {invoiceLoading ? (
+                                        <p className="text-[11px] text-slate-500">Loading invoices...</p>
+                                    ) : customerInvoices.length > 0 ? (
+                                        <select
+                                            value={linkedInvoiceId}
+                                            onChange={(e) => handleInvoiceSelect(e.target.value)}
+                                            className="w-full rounded-lg border border-input bg-white px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 mb-2"
+                                        >
+                                            <option value="">Link existing invoice</option>
+                                            {customerInvoices.map((invoice) => (
+                                                <option key={invoice.id} value={invoice.id}>
+                                                    {invoice.invoiceNumber} • {formatCurrencyValue(invoice.total, invoice.currency || 'USD')}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : formValues.customerId ? (
+                                        <p className="text-[11px] text-slate-500">No invoices found for this customer.</p>
+                                    ) : null}
+                                </div>
                                 <input
                                     type="text"
                                     value={formValues.invoiceNumber}
@@ -594,10 +685,11 @@ export default function ImportShipmentForm() {
                                     onChange={(e) => handleFieldChange('currency', e.target.value)}
                                     className="w-full rounded-lg border-2 border-input bg-white px-4 py-2.5 text-sm hover:border-primary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                                 >
-                                    <option value="USD">USD</option>
-                                    <option value="EUR">EUR</option>
-                                    <option value="GBP">GBP</option>
-                                    <option value="PKR">PKR</option>
+                                    {getCurrencyOptions().map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                             <div>
@@ -654,7 +746,7 @@ export default function ImportShipmentForm() {
                                 </label>
                                 <input
                                     type="text"
-                                    value={formValues.totalCharges}
+                                    value={formatCurrencyValue(parseFloat(formValues.totalCharges) || 0, formValues.currency)}
                                     readOnly
                                     className="w-full rounded-lg border-2 border-input bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700"
                                 />

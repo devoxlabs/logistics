@@ -8,6 +8,8 @@ export type InvoiceStatus =
     | 'overdue'
     | 'cancelled';
 
+export type InvoicePartyType = 'customer' | 'vendor';
+
 export type InvoiceLineItem = {
     id: string;
     description: string;
@@ -20,12 +22,23 @@ export type InvoiceFormValues = {
     invoiceNumber: string; // Auto-generated INV-YYYY-XXXX
     invoiceDate: string;
     dueDate: string;
+    partyType: InvoicePartyType;
+    partyId: string;
+    partyName: string;
+    partyAddress: string;
+    partyTaxId: string;
 
     // Customer
     customerId: string;
     customerName: string;
     customerAddress: string;
     customerTaxId: string;
+
+    // Vendor
+    vendorId: string;
+    vendorName: string;
+    vendorAddress: string;
+    vendorTaxId: string;
 
     // Reference
     jobNumber: string; // Optional link to shipment
@@ -40,6 +53,7 @@ export type InvoiceFormValues = {
     taxAmount: number;
     discount: number;
     total: number;
+    currency: string;
 
     // Terms
     paymentTerms: string; // Net 30, Net 60, etc.
@@ -68,14 +82,23 @@ export const emptyLineItem = (): InvoiceLineItem => ({
 });
 
 // Helper factory for empty invoice form
-export const emptyInvoiceForm = (): InvoiceFormValues => ({
+export const emptyInvoiceForm = (partyType: InvoicePartyType = 'customer'): InvoiceFormValues => ({
     invoiceNumber: '',
     invoiceDate: new Date().toISOString().split('T')[0],
     dueDate: '',
+    partyType,
+    partyId: '',
+    partyName: '',
+    partyAddress: '',
+    partyTaxId: '',
     customerId: '',
     customerName: '',
     customerAddress: '',
     customerTaxId: '',
+    vendorId: '',
+    vendorName: '',
+    vendorAddress: '',
+    vendorTaxId: '',
     jobNumber: '',
     poNumber: '',
     lineItems: [emptyLineItem()],
@@ -84,6 +107,7 @@ export const emptyInvoiceForm = (): InvoiceFormValues => ({
     taxAmount: 0,
     discount: 0,
     total: 0,
+    currency: 'USD',
     paymentTerms: 'Net 30',
     bankDetails: '',
     notes: '',

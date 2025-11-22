@@ -6,13 +6,17 @@ import { useState, useEffect } from 'react';
 import { Invoice, InvoiceFormValues, emptyInvoiceForm, emptyLineItem } from '@/models/invoices';
 import { listInvoices, createInvoice, generateInvoiceNumber } from '@/services/invoices';
 import { listCustomers } from '@/services/customers';
-import { CustomerProfile } from '@/models/profiles';
+import { listVendors } from '@/services/vendors';
+import { CustomerProfile, VendorProfile } from '@/models/profiles';
 import FeatureHeader from '@/components/ui/FeatureHeader';
+import { formatCurrencyValue, getCurrencyOptions } from '@/lib/currency';
 
 export default function InvoiceBilling() {
+    const [activeTab, setActiveTab] = useState<'invoice' | 'billing'>('invoice');
     const [view, setView] = useState<'list' | 'create'>('list');
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [customers, setCustomers] = useState<CustomerProfile[]>([]);
+    const [vendors, setVendors] = useState<VendorProfile[]>([]);
     const [formValues, setFormValues] = useState<InvoiceFormValues>(emptyInvoiceForm());
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -22,15 +26,23 @@ export default function InvoiceBilling() {
         loadData();
     }, []);
 
+    useEffect(() => {
+        setFormValues(emptyInvoiceForm(activeTab === 'invoice' ? 'customer' : 'vendor'));
+        setView('list');
+        setSaveMessage(null);
+    }, [activeTab]);
+
     const loadData = async () => {
         try {
             setLoading(true);
-            const [invoicesData, customersData] = await Promise.all([
+            const [invoicesData, customersData, vendorsData] = await Promise.all([
                 listInvoices(),
                 listCustomers(),
+                listVendors(),
             ]);
             setInvoices(invoicesData);
             setCustomers(customersData);
+            setVendors(vendorsData);
         } catch (error) {
             console.error('Failed to load data', error);
         } finally {
@@ -40,19 +52,6 @@ export default function InvoiceBilling() {
 
     const handleFieldChange = <K extends keyof InvoiceFormValues>(field: K, value: InvoiceFormValues[K]) => {
         setFormValues((prev) => ({ ...prev, [field]: value }));
-
-        if (field === 'customerId') {
-            const customer = customers.find((c) => c.id === value);
-            if (customer) {
-                setFormValues((prev) => ({
-                    ...prev,
-                    customerId: value as string,
-                    customerName: customer.customerName,
-                    customerAddress: customer.address,
-                    customerTaxId: customer.ntnNumber,
-                }));
-            }
-        }
     };
 
     const handleLineItemChange = <K extends keyof InvoiceFormValues['lineItems'][number]>(
@@ -114,12 +113,18 @@ export default function InvoiceBilling() {
             setIsSaving(true);
 
             if (!formValues.invoiceNumber) {
-                formValues.invoiceNumber = generateInvoiceNumber();
+                const prefix = activeTab === 'invoice' ? 'INV' : 'BILL';
+                formValues.invoiceNumber = generateInvoiceNumber(prefix);
             }
 
-            const newInvoice = await createInvoice(formValues);
+            const payload: InvoiceFormValues = {
+                ...formValues,
+                partyType: activeTab === 'invoice' ? 'customer' : 'vendor',
+            };
+
+            const newInvoice = await createInvoice(payload);
             setInvoices((prev) => [newInvoice, ...prev]);
-            setFormValues(emptyInvoiceForm());
+            setFormValues(emptyInvoiceForm(activeTab === 'invoice' ? 'customer' : 'vendor'));
             setSaveMessage('Invoice created successfully');
             setView('list');
         } catch (error) {
@@ -141,17 +146,88 @@ export default function InvoiceBilling() {
         return colors[status] || 'bg-gray-100 text-gray-700 border-gray-200';
     };
 
+    const currentPartyType = activeTab === 'invoice' ? 'customer' : 'vendor';
+    const filteredInvoices = invoices.filter(
+        (inv) => (inv.partyType ?? 'customer') === currentPartyType
+    );
+
     const stats = {
-        totalBilled: invoices.reduce((sum, inv) => sum + inv.total, 0),
-        paid: invoices.filter((inv) => inv.status === 'paid').reduce((sum, inv) => sum + inv.total, 0),
-        outstanding: invoices.filter((inv) => inv.status !== 'paid' && inv.status !== 'cancelled').reduce((sum, inv) => sum + inv.total, 0),
-        overdue: invoices.filter((inv) => inv.status === 'overdue').reduce((sum, inv) => sum + inv.total, 0),
+        totalBilled: filteredInvoices.reduce((sum, inv) => sum + inv.total, 0),
+        paid: filteredInvoices.filter((inv) => inv.status === 'paid').reduce((sum, inv) => sum + inv.total, 0),
+        outstanding: filteredInvoices.filter((inv) => inv.status !== 'paid' && inv.status !== 'cancelled').reduce((sum, inv) => sum + inv.total, 0),
+        overdue: filteredInvoices.filter((inv) => inv.status === 'overdue').reduce((sum, inv) => sum + inv.total, 0),
+    };
+
+    const partyLabel = activeTab === 'invoice' ? 'Customer' : 'Vendor';
+
+    const handlePartySelection = (id: string) => {
+        if (activeTab === 'invoice') {
+            const customer = customers.find((c) => c.id === id);
+            setFormValues((prev) => ({
+                ...prev,
+                partyType: 'customer',
+                partyId: id,
+                partyName: customer?.customerName ?? '',
+                partyAddress: customer?.address ?? '',
+                partyTaxId: customer?.ntnNumber ?? '',
+                customerId: id,
+                customerName: customer?.customerName ?? '',
+                customerAddress: customer?.address ?? '',
+                customerTaxId: customer?.ntnNumber ?? '',
+            }));
+        } else {
+            const vendor = vendors.find((v) => v.id === id);
+            setFormValues((prev) => ({
+                ...prev,
+                partyType: 'vendor',
+                partyId: id,
+                partyName: vendor?.vendorName ?? '',
+                partyAddress: vendor?.address ?? '',
+                partyTaxId: vendor?.ntnNumber ?? '',
+                vendorId: id,
+                vendorName: vendor?.vendorName ?? '',
+                vendorAddress: vendor?.address ?? '',
+                vendorTaxId: vendor?.ntnNumber ?? '',
+            }));
+        }
     };
 
     return (
         <div className="h-full min-h-[60vh] md:min-h-full rounded-xl border border-slate-200 bg-white flex flex-col">
+            <div className="px-4 pt-4 flex gap-2">
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('invoice')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                        activeTab === 'invoice'
+                            ? 'bg-primary text-white border-primary'
+                            : 'bg-white text-slate-600 border-slate-200'
+                    }`}
+                >
+                    Customer Invoices
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('billing')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                        activeTab === 'billing'
+                            ? 'bg-primary text-white border-primary'
+                            : 'bg-white text-slate-600 border-slate-200'
+                    }`}
+                >
+                    Vendor Bills
+                </button>
+            </div>
             <FeatureHeader
-                title={view === 'list' ? 'Invoice & Billing' : 'Create Invoice'}
+                title={
+                    view === 'list'
+                        ? activeTab === 'invoice'
+                            ? 'Customer Invoices'
+                            : 'Vendor Bills'
+                        : activeTab === 'invoice'
+                            ? 'Create Invoice'
+                            : 'Create Bill'
+                }
                 icon={
                     <svg className='h-4 w-4' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
                         <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
@@ -188,19 +264,19 @@ export default function InvoiceBilling() {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             <div className="bg-white rounded-lg border border-slate-200 p-3 md:p-4">
                                 <div className="text-xs text-slate-500 mb-1">Total Billed</div>
-                                <div className="text-xl md:text-2xl font-bold text-slate-900">${stats.totalBilled.toLocaleString()}</div>
+                                <div className="text-xl md:text-2xl font-bold text-slate-900">{formatCurrencyValue(stats.totalBilled, 'USD')}</div>
                             </div>
                             <div className="bg-white rounded-lg border border-slate-200 p-3 md:p-4">
                                 <div className="text-xs text-slate-500 mb-1">Paid</div>
-                                <div className="text-xl md:text-2xl font-bold text-emerald-600">${stats.paid.toLocaleString()}</div>
+                                <div className="text-xl md:text-2xl font-bold text-emerald-600">{formatCurrencyValue(stats.paid, 'USD')}</div>
                             </div>
                             <div className="bg-white rounded-lg border border-slate-200 p-3 md:p-4">
                                 <div className="text-xs text-slate-500 mb-1">Outstanding</div>
-                                <div className="text-xl md:text-2xl font-bold text-primary">${stats.outstanding.toLocaleString()}</div>
+                                <div className="text-xl md:text-2xl font-bold text-primary">{formatCurrencyValue(stats.outstanding, 'USD')}</div>
                             </div>
                             <div className="bg-white rounded-lg border border-slate-200 p-3 md:p-4">
                                 <div className="text-xs text-slate-500 mb-1">Overdue</div>
-                                <div className="text-xl md:text-2xl font-bold text-rose-600">${stats.overdue.toLocaleString()}</div>
+                                <div className="text-xl md:text-2xl font-bold text-rose-600">{formatCurrencyValue(stats.overdue, 'USD')}</div>
                             </div>
                         </div>
                     </div>
@@ -213,12 +289,12 @@ export default function InvoiceBilling() {
                                     <span className="text-sm">Loading invoices...</span>
                                 </div>
                             </div>
-                        ) : invoices.length === 0 ? (
+                        ) : filteredInvoices.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12 text-slate-400">
                                 <svg className="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
-                                <p className="text-sm">No invoices found</p>
+                                <p className="text-sm">No records found</p>
                             </div>
                         ) : (
                             <div className="hidden md:block overflow-x-auto">
@@ -227,7 +303,7 @@ export default function InvoiceBilling() {
                                         <tr className="border-b border-slate-200 bg-slate-50">
                                             <th className="text-left px-4 py-3 text-xs font-semibold text-slate-700">Invoice #</th>
                                             <th className="text-left px-4 py-3 text-xs font-semibold text-slate-700">Date</th>
-                                            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-700">Customer</th>
+                                            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-700">{partyLabel}</th>
                                             <th className="text-right px-4 py-3 text-xs font-semibold text-slate-700">Amount</th>
                                             <th className="text-right px-4 py-3 text-xs font-semibold text-slate-700">Paid</th>
                                             <th className="text-right px-4 py-3 text-xs font-semibold text-slate-700">Balance</th>
@@ -235,14 +311,20 @@ export default function InvoiceBilling() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {invoices.map((invoice) => (
+                                        {filteredInvoices.map((invoice) => (
                                             <tr key={invoice.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150">
                                                 <td className="px-4 py-3 text-sm font-medium text-primary">{invoice.invoiceNumber}</td>
                                                 <td className="px-4 py-3 text-sm text-slate-700">{invoice.invoiceDate}</td>
-                                                <td className="px-4 py-3 text-sm text-slate-700">{invoice.customerName}</td>
-                                                <td className="px-4 py-3 text-sm text-right font-medium text-slate-900">${invoice.total.toLocaleString()}</td>
-                                                <td className="px-4 py-3 text-sm text-right text-emerald-600">${invoice.paidAmount.toLocaleString()}</td>
-                                                <td className="px-4 py-3 text-sm text-right font-semibold text-slate-900">${(invoice.total - invoice.paidAmount).toLocaleString()}</td>
+                                                <td className="px-4 py-3 text-sm text-slate-700">{invoice.partyName || invoice.customerName || invoice.vendorName}</td>
+                                                <td className="px-4 py-3 text-sm text-right font-medium text-slate-900">
+                                                    {formatCurrencyValue(invoice.total, invoice.currency || 'USD')}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm text-right text-emerald-600">
+                                                    {formatCurrencyValue(invoice.paidAmount, invoice.currency || 'USD')}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm text-right font-semibold text-slate-900">
+                                                    {formatCurrencyValue(invoice.total - invoice.paidAmount, invoice.currency || 'USD')}
+                                                </td>
                                                 <td className="px-4 py-3">
                                                     <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border ${getStatusColor(invoice.status)}`}>
                                                         {invoice.status.replace('_', ' ')}
@@ -281,15 +363,15 @@ export default function InvoiceBilling() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-foreground/80 mb-1.5">Customer *</label>
+                                    <label className="block text-sm font-medium text-foreground/80 mb-1.5">{partyLabel} *</label>
                                     <select
-                                        value={formValues.customerId}
-                                        onChange={(e) => handleFieldChange('customerId', e.target.value)}
+                                        value={activeTab === 'invoice' ? formValues.customerId : formValues.vendorId}
+                                        onChange={(e) => handlePartySelection(e.target.value)}
                                         className="w-full rounded-lg border-2 border-input bg-white px-4 py-2.5 text-sm hover:border-primary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                                     >
-                                        <option value="">Select Customer</option>
-                                        {customers.map((customer) => (
-                                            <option key={customer.id} value={customer.id}>{customer.customerName}</option>
+                                        <option value="">Select {partyLabel}</option>
+                                        {(activeTab === 'invoice' ? customers : vendors).map((party) => (
+                                            <option key={party.id} value={party.id}>{partyLabel === 'Customer' ? (party as CustomerProfile).customerName : (party as VendorProfile).vendorName}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -345,7 +427,7 @@ export default function InvoiceBilling() {
                                             <label className="block text-xs font-medium text-foreground/80 mb-1">Amount</label>
                                             <input
                                                 type="text"
-                                                value={`$${item.amount.toFixed(2)}`}
+                                                value={formatCurrencyValue(item.amount, formValues.currency)}
                                                 readOnly
                                                 className="w-full rounded-lg border-2 border-input bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700"
                                             />
@@ -372,7 +454,7 @@ export default function InvoiceBilling() {
                             <div className="max-w-md ml-auto space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-slate-600">Subtotal:</span>
-                                    <span className="font-semibold text-slate-900">${formValues.subtotal.toFixed(2)}</span>
+                                    <span className="font-semibold text-slate-900">{formatCurrencyValue(formValues.subtotal, formValues.currency)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm items-center gap-4">
                                     <span className="text-slate-600">Tax:</span>
@@ -390,12 +472,24 @@ export default function InvoiceBilling() {
                                             className="w-20 rounded-lg border-2 border-input bg-white px-2 py-1 text-sm"
                                         />
                                         <span className="text-xs">%</span>
-                                        <span className="font-semibold text-slate-900 w-24 text-right">${formValues.taxAmount.toFixed(2)}</span>
+                                        <span className="font-semibold text-slate-900 w-24 text-right">{formatCurrencyValue(formValues.taxAmount, formValues.currency)}</span>
                                     </div>
+                                </div>
+                                <div className="flex justify-between text-sm items-center">
+                                    <span className="text-slate-600">Currency</span>
+                                    <select
+                                        value={formValues.currency}
+                                        onChange={(e) => handleFieldChange('currency', e.target.value)}
+                                        className="rounded-md border border-input px-2 py-1 text-xs"
+                                    >
+                                        {getCurrencyOptions().map((opt) => (
+                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div className="flex justify-between text-base font-bold pt-2 border-t border-slate-200">
                                     <span className="text-slate-900">Total:</span>
-                                    <span className="text-primary">${formValues.total.toFixed(2)}</span>
+                                    <span className="text-primary">{formatCurrencyValue(formValues.total, formValues.currency)}</span>
                                 </div>
                             </div>
                         </div>
@@ -416,7 +510,7 @@ export default function InvoiceBilling() {
                                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
-                                        <span>Create Invoice</span>
+                                        <span>{activeTab === 'invoice' ? 'Create Invoice' : 'Create Bill'}</span>
                                     </>
                                 )}
                             </button>

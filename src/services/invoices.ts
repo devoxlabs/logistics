@@ -20,11 +20,60 @@ import { formatTimestamp } from '@/lib/firestoreUtils';
 const INVOICES_COLLECTION = 'invoices';
 
 // Generate invoice number
-export function generateInvoiceNumber(): string {
+export function generateInvoiceNumber(prefix = 'INV'): string {
     const year = new Date().getFullYear();
     const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    return `INV-${year}-${random}`;
+    return `${prefix}-${year}-${random}`;
 }
+
+const ensurePartyFields = (values: InvoiceFormValues): InvoiceFormValues => {
+    const partyType = values.partyType ?? 'customer';
+    const normalized = {
+        ...values,
+        partyType,
+        currency: values.currency ?? 'USD',
+    };
+
+    if (partyType === 'customer') {
+        normalized.partyId = values.partyId || values.customerId;
+        normalized.partyName = values.partyName || values.customerName;
+        normalized.partyAddress = values.partyAddress || values.customerAddress;
+        normalized.partyTaxId = values.partyTaxId || values.customerTaxId;
+    } else {
+        normalized.partyId = values.partyId || values.vendorId;
+        normalized.partyName = values.partyName || values.vendorName;
+        normalized.partyAddress = values.partyAddress || values.vendorAddress;
+        normalized.partyTaxId = values.partyTaxId || values.vendorTaxId;
+    }
+
+    return normalized;
+};
+
+const mapInvoiceDoc = (data: Record<string, unknown>, id: string): Invoice => {
+    const invoiceData: Omit<Invoice, 'id'> = {
+        ...data,
+        createdAt: formatTimestamp(data.createdAt),
+        updatedAt: formatTimestamp(data.updatedAt),
+    } as Omit<Invoice, 'id'>;
+
+    if (!invoiceData.partyType) {
+        invoiceData.partyType = 'customer';
+    }
+    if (!invoiceData.partyId) {
+        invoiceData.partyId = invoiceData.partyType === 'customer' ? invoiceData.customerId : invoiceData.vendorId;
+    }
+    if (!invoiceData.partyName) {
+        invoiceData.partyName = invoiceData.partyType === 'customer' ? invoiceData.customerName : invoiceData.vendorName;
+    }
+    if (!invoiceData.currency) {
+        invoiceData.currency = 'USD';
+    }
+
+    return {
+        id,
+        ...invoiceData,
+    };
+};
 
 // List all invoices
 export async function listInvoices(): Promise<Invoice[]> {
@@ -35,15 +84,7 @@ export async function listInvoices(): Promise<Invoice[]> {
 
     const items: Invoice[] = snap.docs.map((docSnap) => {
         const data = docSnap.data() as Record<string, unknown>;
-        const invoiceData = {
-            ...data,
-            createdAt: formatTimestamp(data.createdAt),
-            updatedAt: formatTimestamp(data.updatedAt),
-        } as Omit<Invoice, 'id'>;
-        return {
-            id: docSnap.id,
-            ...invoiceData,
-        };
+        return mapInvoiceDoc(data, docSnap.id);
     });
 
     return items;
@@ -62,15 +103,26 @@ export async function listInvoicesByCustomer(customerId: string): Promise<Invoic
 
     const items: Invoice[] = snap.docs.map((docSnap) => {
         const data = docSnap.data() as Record<string, unknown>;
-        const invoiceData = {
-            ...data,
-            createdAt: formatTimestamp(data.createdAt),
-            updatedAt: formatTimestamp(data.updatedAt),
-        } as Omit<Invoice, 'id'>;
-        return {
-            id: docSnap.id,
-            ...invoiceData,
-        };
+        return mapInvoiceDoc(data, docSnap.id);
+    });
+
+    return items;
+}
+
+// List invoices by vendor
+export async function listInvoicesByVendor(vendorId: string): Promise<Invoice[]> {
+    const db = getFirebaseDb();
+    const snap = await getDocs(
+        query(
+            collection(db, INVOICES_COLLECTION),
+            where('vendorId', '==', vendorId),
+            orderBy('invoiceDate', 'desc')
+        )
+    );
+
+    const items: Invoice[] = snap.docs.map((docSnap) => {
+        const data = docSnap.data() as Record<string, unknown>;
+        return mapInvoiceDoc(data, docSnap.id);
     });
 
     return items;
@@ -79,8 +131,17 @@ export async function listInvoicesByCustomer(customerId: string): Promise<Invoic
 // Create invoice
 export async function createInvoice(values: InvoiceFormValues): Promise<Invoice> {
     const db = getFirebaseDb();
+    const normalized = ensurePartyFields(values);
     const payload = {
-        ...values,
+        ...normalized,
+        customerId: normalized.partyType === 'customer' ? normalized.partyId : '',
+        customerName: normalized.partyType === 'customer' ? normalized.partyName : '',
+        customerAddress: normalized.partyType === 'customer' ? normalized.partyAddress : '',
+        customerTaxId: normalized.partyType === 'customer' ? normalized.partyTaxId : '',
+        vendorId: normalized.partyType === 'vendor' ? normalized.partyId : normalized.vendorId,
+        vendorName: normalized.partyType === 'vendor' ? normalized.partyName : normalized.vendorName,
+        vendorAddress: normalized.partyType === 'vendor' ? normalized.partyAddress : normalized.vendorAddress,
+        vendorTaxId: normalized.partyType === 'vendor' ? normalized.partyTaxId : normalized.vendorTaxId,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
     };
@@ -90,7 +151,7 @@ export async function createInvoice(values: InvoiceFormValues): Promise<Invoice>
         id: docRef.id,
         createdAt: now.toLocaleString(),
         updatedAt: now.toLocaleString(),
-        ...values,
+        ...normalized,
     };
 }
 
@@ -101,8 +162,17 @@ export async function updateInvoice(
 ): Promise<void> {
     const db = getFirebaseDb();
     const ref = doc(db, INVOICES_COLLECTION, id);
+    const normalized = ensurePartyFields(values);
     await updateDoc(ref, {
-        ...values,
+        ...normalized,
+        customerId: normalized.partyType === 'customer' ? normalized.partyId : '',
+        customerName: normalized.partyType === 'customer' ? normalized.partyName : '',
+        customerAddress: normalized.partyType === 'customer' ? normalized.partyAddress : '',
+        customerTaxId: normalized.partyType === 'customer' ? normalized.partyTaxId : '',
+        vendorId: normalized.partyType === 'vendor' ? normalized.partyId : normalized.vendorId,
+        vendorName: normalized.partyType === 'vendor' ? normalized.partyName : normalized.vendorName,
+        vendorAddress: normalized.partyType === 'vendor' ? normalized.partyAddress : normalized.vendorAddress,
+        vendorTaxId: normalized.partyType === 'vendor' ? normalized.partyTaxId : normalized.vendorTaxId,
         updatedAt: serverTimestamp(),
     });
 }
