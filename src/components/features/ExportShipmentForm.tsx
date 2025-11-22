@@ -47,9 +47,8 @@ export default function ExportShipmentForm() {
 
         const shipmentCurrency = values.currency || 'USD';
         const invoiceCurrency = invoice.currency || 'USD';
-        const baseValue = parseFloat(values.invoiceValue || '0') || 0;
         const chargesValue = parseFloat(values.totalCharges || '0') || 0;
-        const totalForShipment = baseValue + chargesValue;
+        const totalForShipment = chargesValue;
         const convertedAmount = convertCurrency(totalForShipment, shipmentCurrency, invoiceCurrency);
 
         const lineItemId = values.jobNumber || values.bookingNumber || Math.random().toString(36).slice(2);
@@ -119,7 +118,6 @@ export default function ExportShipmentForm() {
                     shipperAddress: vendor.address,
                     invoiceId: '',
                     invoiceNumber: '',
-                    invoiceValue: '',
                 }));
             }
         }
@@ -207,7 +205,6 @@ export default function ExportShipmentForm() {
                 ...prev,
                 invoiceId: invoice.id,
                 invoiceNumber: invoice.invoiceNumber,
-                invoiceValue: invoice.total.toFixed(2),
                 currency: invoice.currency || prev.currency,
             }));
         }
@@ -403,7 +400,7 @@ export default function ExportShipmentForm() {
                                     <button
                                         type="button"
                                         onClick={() => handleFieldChange('mode', 'shipping')}
-                                        className={`flex-1 rounded-lg border px-3 py-2 text-sm ${
+                                        className={`flex-1 rounded-lg border px-3 py-2 text-sm cursor-pointer ${
                                             formValues.mode === 'shipping'
                                                 ? 'border-primary bg-primary/10 text-primary font-semibold'
                                                 : 'border-slate-200 text-slate-600'
@@ -414,7 +411,7 @@ export default function ExportShipmentForm() {
                                     <button
                                         type="button"
                                         onClick={() => handleFieldChange('mode', 'flight')}
-                                        className={`flex-1 rounded-lg border px-3 py-2 text-sm ${
+                                        className={`flex-1 rounded-lg border px-3 py-2 text-sm cursor-pointer ${
                                             formValues.mode === 'flight'
                                                 ? 'border-primary bg-primary/10 text-primary font-semibold'
                                                 : 'border-slate-200 text-slate-600'
@@ -782,7 +779,7 @@ export default function ExportShipmentForm() {
                                         <select
                                             value={linkedInvoiceId}
                                             onChange={(e) => handleInvoiceSelect(e.target.value)}
-                                            className="w-full rounded-lg border border-input bg-white px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 mb-2"
+                                            className="w-full rounded-lg border border-input bg-white px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 mb-2 cursor-pointer"
                                         >
                                             <option value="">Link existing bill</option>
                                             {vendorInvoices.map((invoice) => (
@@ -799,17 +796,6 @@ export default function ExportShipmentForm() {
                                     type="text"
                                     value={formValues.invoiceNumber}
                                     onChange={(e) => handleFieldChange('invoiceNumber', e.target.value)}
-                                    className="w-full rounded-lg border-2 border-input bg-white px-4 py-2.5 text-sm hover:border-primary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-foreground/80 mb-1.5">
-                                    Invoice Value
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formValues.invoiceValue}
-                                    onChange={(e) => handleFieldChange('invoiceValue', e.target.value)}
                                     className="w-full rounded-lg border-2 border-input bg-white px-4 py-2.5 text-sm hover:border-primary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                                 />
                             </div>

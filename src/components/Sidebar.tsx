@@ -86,10 +86,10 @@ const MENU: MenuItem[] = [
 
       { id: 'invoice', label: 'Invoice', Icon: FileText },
       { id: 'billing', label: 'Billing', Icon: CreditCard },
-      { id: 'ledger-entry', label: 'Ledger Entry', Icon: FilePlus },
       { id: 'customer-ledger', label: 'Customer Ledger', Icon: BookUser },
       { id: 'vendor-ledger', label: 'Vendor Ledger', Icon: FileSpreadsheet },
       { id: 'general-ledger', label: 'General Ledger', Icon: BookOpenText },
+      { id: 'expenses', label: 'Expenses', Icon: FilePlus },
       { id: 'profit-and-loss', label: 'Profit & Loss', Icon: TrendingUp },
       { id: 'balance-sheet', label: 'Balance Sheet', Icon: Scale },
     ],

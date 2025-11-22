@@ -158,6 +158,13 @@ export default function InvoiceBilling() {
         try {
             setDetailSaving(true);
             const updated: Invoice = { ...detailInvoice, status: detailStatus };
+            if (detailStatus === 'paid') {
+                updated.paidAmount = detailInvoice.total;
+                updated.paidDate = new Date().toISOString().split('T')[0];
+            } else if (detailStatus === 'draft' || detailStatus === 'sent') {
+                updated.paidAmount = 0;
+                updated.paidDate = '';
+            }
             const { id, ...payload } = updated;
             await updateInvoice(id, payload);
             setInvoices((prev) => prev.map((inv) => (inv.id === id ? updated : inv)));

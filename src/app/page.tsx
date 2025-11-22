@@ -17,7 +17,7 @@ import VendorLedger from '@/components/features/VendorLedger';
 import GeneralLedger from '@/components/features/GeneralLedger';
 import ProfitAndLoss from '@/components/features/ProfitAndLoss';
 import BalanceSheetReport from '@/components/features/BalanceSheetReport';
-import LedgerEntryForm from '@/components/features/LedgerEntryForm';
+import Expenses from '@/components/features/Expenses';
 import PageTransition from '@/components/ui/PageTransition';
 
 const TAB_TITLES: Record<string, string> = {
@@ -29,12 +29,12 @@ const TAB_TITLES: Record<string, string> = {
   'import-shipment-detail-report': 'Import Shipment Detail Report',
   'export-shipment-detail-report': 'Export Shipment Detail Report',
   'customer-group-ledger': 'Customer Group Ledger',
-  'ledger-entry': 'Ledger Entry',
   invoice: 'Invoice',
   billing: 'Billing',
   'customer-ledger': 'Customer Ledger',
   'vendor-ledger': 'Vendor Ledger',
   'general-ledger': 'General Ledger',
+  expenses: 'Expenses',
   'profit-and-loss': 'Profit & Loss',
   'balance-sheet': 'Balance Sheet',
 };
@@ -119,12 +119,12 @@ export default function Home() {
               <VendorLedger />
             ) : selectedId === 'general-ledger' ? (
               <GeneralLedger />
+            ) : selectedId === 'expenses' ? (
+              <Expenses />
             ) : selectedId === 'profit-and-loss' ? (
               <ProfitAndLoss />
             ) : selectedId === 'balance-sheet' ? (
               <BalanceSheetReport />
-            ) : selectedId === 'ledger-entry' ? (
-              <LedgerEntryForm />
             ) : (
               <div className='flex-1 flex items-center justify-center px-4 py-3'>
                 <p className='text-xs md:text-sm text-slate-400'>

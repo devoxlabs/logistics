@@ -1,87 +1,64 @@
 // Financial statements service functions
 // Operations for generating P&L and Balance Sheet
 
-import { getDocs, collection, query, where } from 'firebase/firestore';
-import { getFirebaseDb } from '@/lib/firebase';
 import { ProfitLossData, BalanceSheetData, emptyProfitLoss, emptyBalanceSheet } from '@/models/financials';
-import { Account, GeneralLedgerEntry } from '@/models/accounts';
-import { readNumber, readString } from '@/lib/firestoreUtils';
-
-const LEDGER_COLLECTION = 'ledger';
-const ACCOUNTS_COLLECTION = 'accounts';
+import { listInvoices } from '@/services/invoices';
+import { listExpenses } from '@/services/expenses';
+import { convertCurrency } from '@/lib/currency';
 
 // Generate Profit & Loss statement for a date range
 export async function generateProfitLoss(
     startDate: string,
     endDate: string
 ): Promise<ProfitLossData> {
-    const db = getFirebaseDb();
-
-    // Fetch all ledger entries in the date range
-    const snap = await getDocs(
-        query(
-            collection(db, LEDGER_COLLECTION),
-            where('date', '>=', startDate),
-            where('date', '<=', endDate)
-        )
-    );
-
     const data = emptyProfitLoss();
     data.period = `${startDate} to ${endDate}`;
     data.startDate = startDate;
     data.endDate = endDate;
 
-    // Process ledger entries to calculate revenue and expenses
-    snap.docs.forEach((docSnap) => {
-        const entry = docSnap.data() as Partial<GeneralLedgerEntry>;
-        const accountCode = readString(entry.accountCode);
+    const [invoices, expenses] = await Promise.all([listInvoices(), listExpenses()]);
+    const start = new Date(startDate);
+    const end = new Date(endDate);
 
-        // Revenue accounts (4000-4999)
-        if (accountCode.startsWith('4')) {
-            if (accountCode === '4000') {
-                data.revenue.serviceRevenue += readNumber(entry.credit);
-            } else if (accountCode === '4100') {
-                data.revenue.freightRevenue += readNumber(entry.credit);
-            } else if (accountCode === '4900') {
-                data.revenue.otherIncome += readNumber(entry.credit);
+    invoices
+        .filter((invoice) => {
+            const date = new Date(invoice.invoiceDate);
+            return date >= start && date <= end;
+        })
+        .forEach((invoice) => {
+            const amount = convertCurrency(invoice.total || 0, invoice.currency || 'USD', 'USD');
+            if ((invoice.partyType ?? 'customer') === 'customer') {
+                data.revenue.serviceRevenue += amount;
+            } else {
+                data.costOfServices.freightCosts += amount;
             }
-        }
+        });
 
-        // Cost of Services (5000-5199)
-        if (accountCode >= '5000' && accountCode < '5200') {
-            if (accountCode === '5000') {
-                data.costOfServices.freightCosts += readNumber(entry.debit);
-            } else if (accountCode === '5100') {
-                data.costOfServices.handlingCosts += readNumber(entry.debit);
+    expenses
+        .filter((expense) => {
+            const date = new Date(expense.date);
+            return date >= start && date <= end;
+        })
+        .forEach((expense) => {
+            const amount = convertCurrency(expense.amount || 0, expense.currency || 'USD', 'USD');
+            switch (expense.category) {
+                case 'fuel':
+                case 'airline_charges':
+                    data.costOfServices.freightCosts += amount;
+                    break;
+                case 'port_fees':
+                case 'customs':
+                    data.costOfServices.handlingCosts += amount;
+                    break;
+                case 'warehousing':
+                    data.operatingExpenses.administrative += amount;
+                    break;
+                case 'logistics_overheads':
+                default:
+                    data.operatingExpenses.other += amount;
+                    break;
             }
-        }
-
-        // Operating Expenses (5200-5899)
-        if (accountCode >= '5200' && accountCode < '5900') {
-            if (accountCode === '5200') {
-                data.operatingExpenses.salaries += readNumber(entry.debit);
-            } else if (accountCode === '5300') {
-                data.operatingExpenses.rent += readNumber(entry.debit);
-            } else if (accountCode === '5400') {
-                data.operatingExpenses.utilities += readNumber(entry.debit);
-            } else if (accountCode === '5500') {
-                data.operatingExpenses.insurance += readNumber(entry.debit);
-            } else if (accountCode === '5600') {
-                data.operatingExpenses.depreciation += readNumber(entry.debit);
-            } else if (accountCode === '5700') {
-                data.operatingExpenses.marketing += readNumber(entry.debit);
-            } else if (accountCode === '5800') {
-                data.operatingExpenses.administrative += readNumber(entry.debit);
-            }
-        }
-
-        // Other Expenses
-        if (accountCode === '5900') {
-            data.otherExpenses.interestExpense += readNumber(entry.debit);
-        } else if (accountCode === '5950') {
-            data.otherExpenses.taxes += readNumber(entry.debit);
-        }
-    });
+        });
 
     // Calculate totals
     data.revenue.total =
@@ -122,64 +99,45 @@ export async function generateProfitLoss(
 
 // Generate Balance Sheet as of a specific date
 export async function generateBalanceSheet(asOfDate: string): Promise<BalanceSheetData> {
-    const db = getFirebaseDb();
-
-    // Fetch all accounts with their balances
-    const snap = await getDocs(collection(db, ACCOUNTS_COLLECTION));
+    const [invoices, expenses] = await Promise.all([listInvoices(), listExpenses()]);
 
     const data = emptyBalanceSheet();
     data.asOfDate = asOfDate;
 
-    snap.docs.forEach((docSnap) => {
-        const account = docSnap.data() as Partial<Account>;
-        const code = readString(account.code);
-        const balance = readNumber(account.balance);
+    const receivables = invoices
+        .filter((invoice) => (invoice.partyType ?? 'customer') === 'customer')
+        .reduce((sum, invoice) => {
+            const total = convertCurrency(invoice.total || 0, invoice.currency || 'USD', 'USD');
+            const paid = convertCurrency(invoice.paidAmount || 0, invoice.currency || 'USD', 'USD');
+            return sum + Math.max(total - paid, 0);
+        }, 0);
 
-        // Assets (1000-1999)
-        if (code.startsWith('1')) {
-            if (code === '1000') {
-                data.assets.currentAssets.cash = balance;
-            } else if (code === '1100') {
-                data.assets.currentAssets.accountsReceivable = balance;
-            } else if (code === '1200') {
-                data.assets.currentAssets.inventory = balance;
-            } else if (code === '1300') {
-                data.assets.currentAssets.prepaidExpenses = balance;
-            } else if (code === '1500') {
-                data.assets.fixedAssets.propertyPlantEquipment = balance;
-            } else if (code === '1510') {
-                data.assets.fixedAssets.accumulatedDepreciation = balance;
-            } else {
-                data.assets.otherAssets += balance;
-            }
-        }
+    const vendorPayables = invoices
+        .filter((invoice) => (invoice.partyType ?? 'customer') === 'vendor')
+        .reduce((sum, invoice) => {
+            const total = convertCurrency(invoice.total || 0, invoice.currency || 'USD', 'USD');
+            const paid = convertCurrency(invoice.paidAmount || 0, invoice.currency || 'USD', 'USD');
+            return sum + Math.max(total - paid, 0);
+        }, 0);
 
-        // Liabilities (2000-2999)
-        if (code.startsWith('2')) {
-            if (code === '2000') {
-                data.liabilities.currentLiabilities.accountsPayable = balance;
-            } else if (code === '2100') {
-                data.liabilities.currentLiabilities.accruedExpenses = balance;
-            } else if (code === '2200') {
-                data.liabilities.currentLiabilities.shortTermDebt = balance;
-            } else if (code === '2500') {
-                data.liabilities.longTermLiabilities.longTermDebt = balance;
-            } else {
-                data.liabilities.longTermLiabilities.otherLongTerm += balance;
-            }
-        }
+    const outstandingExpenses = expenses.reduce((sum, expense) => {
+        if (expense.status === 'paid') return sum;
+        const total = convertCurrency(expense.amount || 0, expense.currency || 'USD', 'USD');
+        return sum + total;
+    }, 0);
 
-        // Equity (3000-3999)
-        if (code.startsWith('3')) {
-            if (code === '3000') {
-                data.equity.ownersEquity = balance;
-            } else if (code === '3100') {
-                data.equity.retainedEarnings = balance;
-            } else if (code === '3200') {
-                data.equity.currentYearEarnings = balance;
-            }
-        }
-    });
+    const payables = vendorPayables + outstandingExpenses;
+
+    data.assets.currentAssets.accountsReceivable = receivables;
+    data.assets.currentAssets.total = receivables;
+    data.assets.totalAssets = receivables;
+    data.liabilities.currentLiabilities.accountsPayable = payables;
+    data.liabilities.currentLiabilities.total = payables;
+    data.liabilities.totalLiabilities = payables;
+
+    const equityValue = receivables - payables;
+    data.equity.currentYearEarnings = equityValue;
+    data.equity.totalEquity = equityValue;
 
     // Calculate totals
     data.assets.currentAssets.total =

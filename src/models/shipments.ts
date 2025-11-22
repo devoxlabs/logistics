@@ -55,7 +55,6 @@ export type ImportShipmentFormValues = {
     // Financial
     invoiceId?: string;
     invoiceNumber: string;
-    invoiceValue: string;
     currency: string;
     freightCharges: string;
     insuranceCharges: string;
@@ -122,7 +121,6 @@ export type ExportShipmentFormValues = {
     exportLicenseNumber: string;
     letterOfCreditNumber: string;
     invoiceNumber: string;
-    invoiceValue: string;
     currency: string;
 
     // Financial
@@ -176,7 +174,6 @@ export const emptyImportShipmentForm = (): ImportShipmentFormValues => ({
     packageType: '',
     invoiceId: '',
     invoiceNumber: '',
-    invoiceValue: '',
     currency: 'USD',
     freightCharges: '',
     insuranceCharges: '',
@@ -221,7 +218,6 @@ export const emptyExportShipmentForm = (): ExportShipmentFormValues => ({
     exportLicenseNumber: '',
     letterOfCreditNumber: '',
     invoiceNumber: '',
-    invoiceValue: '',
     currency: 'USD',
     freightCharges: '',
     insuranceCharges: '',
