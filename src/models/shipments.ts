@@ -53,6 +53,7 @@ export type ImportShipmentFormValues = {
     packageType: string; // Cartons, Pallets, etc.
 
     // Financial
+    invoiceId?: string;
     invoiceNumber: string;
     invoiceValue: string;
     currency: string;
@@ -117,6 +118,7 @@ export type ExportShipmentFormValues = {
     packageType: string;
 
     // Documentation
+    invoiceId?: string;
     exportLicenseNumber: string;
     letterOfCreditNumber: string;
     invoiceNumber: string;
@@ -172,6 +174,7 @@ export const emptyImportShipmentForm = (): ImportShipmentFormValues => ({
     cbm: '',
     numberOfPackages: '',
     packageType: '',
+    invoiceId: '',
     invoiceNumber: '',
     invoiceValue: '',
     currency: 'USD',
@@ -214,6 +217,7 @@ export const emptyExportShipmentForm = (): ExportShipmentFormValues => ({
     cbm: '',
     numberOfPackages: '',
     packageType: '',
+    invoiceId: '',
     exportLicenseNumber: '',
     letterOfCreditNumber: '',
     invoiceNumber: '',

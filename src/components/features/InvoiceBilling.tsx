@@ -3,8 +3,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Invoice, InvoiceFormValues, emptyInvoiceForm, emptyLineItem } from '@/models/invoices';
-import { listInvoices, createInvoice, generateInvoiceNumber } from '@/services/invoices';
+import { Invoice, InvoiceFormValues, emptyInvoiceForm } from '@/models/invoices';
+import { listInvoices, createInvoice, generateInvoiceNumber, updateInvoice } from '@/services/invoices';
 import { listCustomers } from '@/services/customers';
 import { listVendors } from '@/services/vendors';
 import { CustomerProfile, VendorProfile } from '@/models/profiles';
@@ -21,6 +21,9 @@ export default function InvoiceBilling() {
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
+    const [detailInvoice, setDetailInvoice] = useState<Invoice | null>(null);
+    const [detailStatus, setDetailStatus] = useState<Invoice['status']>('draft');
+    const [detailSaving, setDetailSaving] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -52,57 +55,6 @@ export default function InvoiceBilling() {
 
     const handleFieldChange = <K extends keyof InvoiceFormValues>(field: K, value: InvoiceFormValues[K]) => {
         setFormValues((prev) => ({ ...prev, [field]: value }));
-    };
-
-    const handleLineItemChange = <K extends keyof InvoiceFormValues['lineItems'][number]>(
-        index: number,
-        field: K,
-        value: InvoiceFormValues['lineItems'][number][K],
-    ) => {
-        const newLineItems = [...formValues.lineItems];
-        newLineItems[index] = { ...newLineItems[index], [field]: value };
-
-        if (field === 'quantity' || field === 'unitPrice') {
-            const qty = newLineItems[index].quantity;
-            const price = newLineItems[index].unitPrice;
-            newLineItems[index].amount = qty * price;
-        }
-
-        const subtotal = newLineItems.reduce((sum, item) => sum + item.amount, 0);
-        const taxAmount = subtotal * (formValues.taxRate / 100);
-        const total = subtotal + taxAmount - formValues.discount;
-
-        setFormValues((prev) => ({
-            ...prev,
-            lineItems: newLineItems,
-            subtotal,
-            taxAmount,
-            total,
-        }));
-    };
-
-    const addLineItem = () => {
-        setFormValues((prev) => ({
-            ...prev,
-            lineItems: [...prev.lineItems, emptyLineItem()],
-        }));
-    };
-
-    const removeLineItem = (index: number) => {
-        if (formValues.lineItems.length > 1) {
-            const newLineItems = formValues.lineItems.filter((_, i) => i !== index);
-            const subtotal = newLineItems.reduce((sum, item) => sum + item.amount, 0);
-            const taxAmount = subtotal * (formValues.taxRate / 100);
-            const total = subtotal + taxAmount - formValues.discount;
-
-            setFormValues((prev) => ({
-                ...prev,
-                lineItems: newLineItems,
-                subtotal,
-                taxAmount,
-                total,
-            }));
-        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -192,7 +144,34 @@ export default function InvoiceBilling() {
         }
     };
 
+    const openInvoiceDetail = (invoice: Invoice) => {
+        setDetailInvoice(invoice);
+        setDetailStatus(invoice.status);
+    };
+
+    const closeInvoiceDetail = () => {
+        setDetailInvoice(null);
+    };
+
+    const handleDetailStatusSave = async () => {
+        if (!detailInvoice) return;
+        try {
+            setDetailSaving(true);
+            const updated: Invoice = { ...detailInvoice, status: detailStatus };
+            const { id, ...payload } = updated;
+            await updateInvoice(id, payload);
+            setInvoices((prev) => prev.map((inv) => (inv.id === id ? updated : inv)));
+            setDetailInvoice(updated);
+            setSaveMessage('Invoice updated successfully');
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setDetailSaving(false);
+        }
+    };
+
     return (
+        <>
         <div className="h-full min-h-[60vh] md:min-h-full rounded-xl border border-slate-200 bg-white flex flex-col">
             <div className="px-4 pt-4 flex gap-2">
                 <button
@@ -308,6 +287,7 @@ export default function InvoiceBilling() {
                                             <th className="text-right px-4 py-3 text-xs font-semibold text-slate-700">Paid</th>
                                             <th className="text-right px-4 py-3 text-xs font-semibold text-slate-700">Balance</th>
                                             <th className="text-left px-4 py-3 text-xs font-semibold text-slate-700">Status</th>
+                                            <th className="text-right px-4 py-3 text-xs font-semibold text-slate-700">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -329,6 +309,15 @@ export default function InvoiceBilling() {
                                                     <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border ${getStatusColor(invoice.status)}`}>
                                                         {invoice.status.replace('_', ' ')}
                                                     </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => openInvoiceDetail(invoice)}
+                                                        className="inline-flex items-center rounded-md border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                                                    >
+                                                        View
+                                                    </button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -379,75 +368,11 @@ export default function InvoiceBilling() {
                         </div>
 
                         <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-sm font-semibold text-slate-800">Line Items</h3>
-                                <button
-                                    type="button"
-                                    onClick={addLineItem}
-                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary-hover transition-colors duration-200"
-                                >
-                                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                    </svg>
-                                    Add Item
-                                </button>
-                            </div>
-                            <div className="space-y-3">
-                                {formValues.lineItems.map((item, index) => (
-                                    <div key={item.id} className="grid grid-cols-12 gap-2 items-end">
-                                        <div className="col-span-12 md:col-span-5">
-                                            <label className="block text-xs font-medium text-foreground/80 mb-1">Description</label>
-                                            <input
-                                                type="text"
-                                                value={item.description}
-                                                onChange={(e) => handleLineItemChange(index, 'description', e.target.value)}
-                                                className="w-full rounded-lg border-2 border-input bg-white px-3 py-2 text-sm hover:border-primary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
-                                            />
-                                        </div>
-                                        <div className="col-span-4 md:col-span-2">
-                                            <label className="block text-xs font-medium text-foreground/80 mb-1">Qty</label>
-                                            <input
-                                                type="number"
-                                                value={item.quantity}
-                                                onChange={(e) => handleLineItemChange(index, 'quantity', Number(e.target.value) || 0)}
-                                                className="w-full rounded-lg border-2 border-input bg-white px-3 py-2 text-sm hover:border-primary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
-                                            />
-                                        </div>
-                                        <div className="col-span-4 md:col-span-2">
-                                            <label className="block text-xs font-medium text-foreground/80 mb-1">Price</label>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                value={item.unitPrice}
-                                                onChange={(e) => handleLineItemChange(index, 'unitPrice', Number(e.target.value) || 0)}
-                                                className="w-full rounded-lg border-2 border-input bg-white px-3 py-2 text-sm hover:border-primary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
-                                            />
-                                        </div>
-                                        <div className="col-span-3 md:col-span-2">
-                                            <label className="block text-xs font-medium text-foreground/80 mb-1">Amount</label>
-                                            <input
-                                                type="text"
-                                                value={formatCurrencyValue(item.amount, formValues.currency)}
-                                                readOnly
-                                                className="w-full rounded-lg border-2 border-input bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700"
-                                            />
-                                        </div>
-                                        <div className="col-span-1">
-                                            {formValues.lineItems.length > 1 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeLineItem(index)}
-                                                    className="w-full h-[42px] inline-flex items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors duration-200"
-                                                >
-                                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                            <h3 className="text-sm font-semibold text-slate-800 mb-2">Line Items</h3>
+                            <p className="text-xs text-slate-600">
+                                Line items are automatically populated from linked import/export shipments. Once a shipment
+                                referencing this invoice or bill is created, the totals will update here.
+                            </p>
                         </div>
 
                         <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
@@ -525,5 +450,93 @@ export default function InvoiceBilling() {
                 </div>
             )}
         </div>
+        {detailInvoice && (
+            <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 px-4 py-10">
+                <div className="w-full max-w-3xl rounded-xl bg-white shadow-2xl border border-slate-200 max-h-full overflow-y-auto p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-lg font-semibold text-slate-900">{detailInvoice.invoiceNumber}</h2>
+                            <p className="text-sm text-slate-500">{detailInvoice.partyName || detailInvoice.customerName || detailInvoice.vendorName}</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={closeInvoiceDetail}
+                            className="rounded-full border border-slate-200 w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <p className="text-xs text-slate-500">Status</p>
+                            <select
+                                value={detailStatus}
+                                onChange={(e) => setDetailStatus(e.target.value as Invoice['status'])}
+                                className="mt-1 w-full rounded-lg border border-input px-3 py-2 text-sm"
+                            >
+                                {['draft', 'sent', 'paid', 'partially_paid', 'overdue', 'cancelled'].map((status) => (
+                                    <option key={status} value={status}>
+                                        {status.replace('_', ' ')}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <p className="text-xs text-slate-500">Currency</p>
+                            <p className="text-sm font-medium text-slate-800">{detailInvoice.currency || 'USD'}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-slate-500">Total</p>
+                            <p className="text-sm font-semibold text-slate-900">
+                                {formatCurrencyValue(detailInvoice.total, detailInvoice.currency || 'USD')}
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-semibold text-slate-800 mb-2">Line Items</h3>
+                        {detailInvoice.lineItems && detailInvoice.lineItems.length > 0 ? (
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="text-left text-xs text-slate-500 border-b">
+                                        <th className="px-2 py-1">Description</th>
+                                        <th className="px-2 py-1 text-right">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {detailInvoice.lineItems.map((item) => (
+                                        <tr key={item.id} className="border-b last:border-0">
+                                            <td className="px-2 py-2">{item.description}</td>
+                                            <td className="px-2 py-2 text-right">
+                                                {formatCurrencyValue(item.amount, detailInvoice.currency || 'USD')}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <p className="text-xs text-slate-500">Line items will appear when shipments are linked.</p>
+                        )}
+                    </div>
+                    <div className="flex justify-end gap-2">
+                        <button
+                            type="button"
+                            onClick={closeInvoiceDetail}
+                            className="rounded-md border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                        >
+                            Close
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleDetailStatusSave}
+                            disabled={detailSaving}
+                            className="rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold hover:bg-primary/90 disabled:opacity-60"
+                        >
+                            {detailSaving ? 'Saving...' : 'Save'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+        </>
     );
 }

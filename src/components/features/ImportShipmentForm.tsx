@@ -19,7 +19,8 @@ import { CustomerProfile } from '@/models/profiles';
 import FeatureHeader from '@/components/ui/FeatureHeader';
 import { listInvoicesByCustomer } from '@/services/invoices';
 import { Invoice } from '@/models/invoices';
-import { formatCurrencyValue, getCurrencyOptions } from '@/lib/currency';
+import { convertCurrency, formatCurrencyValue, getCurrencyOptions } from '@/lib/currency';
+import { updateInvoice } from '@/services/invoices';
 
 export default function ImportShipmentForm() {
     const [shipments, setShipments] = useState<ImportShipment[]>([]);
@@ -35,6 +36,58 @@ export default function ImportShipmentForm() {
     const [customerInvoices, setCustomerInvoices] = useState<Invoice[]>([]);
     const [linkedInvoiceId, setLinkedInvoiceId] = useState('');
     const [invoiceLoading, setInvoiceLoading] = useState(false);
+    const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+
+    const syncInvoiceFromShipment = async (values: ImportShipmentFormValues) => {
+        if (!values.invoiceId) return;
+        const invoice =
+            (selectedInvoice && selectedInvoice.id === values.invoiceId
+                ? selectedInvoice
+                : customerInvoices.find((inv) => inv.id === values.invoiceId)) || null;
+        if (!invoice) return;
+
+        const shipmentCurrency = values.currency || 'USD';
+        const invoiceCurrency = invoice.currency || 'USD';
+        const baseValue = parseFloat(values.invoiceValue || '0') || 0;
+        const chargesValue = parseFloat(values.totalCharges || '0') || 0;
+        const totalForShipment = baseValue + chargesValue;
+        const convertedAmount = convertCurrency(totalForShipment, shipmentCurrency, invoiceCurrency);
+
+        const lineItemId = values.jobNumber || values.billOfLading || Math.random().toString(36).slice(2);
+        const descriptor = `${values.jobNumber || values.billOfLading} • Import (${values.mode})`;
+        const newLineItem = {
+            id: lineItemId,
+            description: descriptor.trim(),
+            quantity: 1,
+            unitPrice: convertedAmount,
+            amount: convertedAmount,
+        };
+
+        const existingItems = invoice.lineItems ?? [];
+        const filteredItems = existingItems.filter((item) => item.id !== newLineItem.id);
+        const lineItems = [...filteredItems, newLineItem];
+        const subtotal = lineItems.reduce((sum, item) => sum + item.amount, 0);
+        const taxAmount = subtotal * (invoice.taxRate / 100);
+        const total = subtotal + taxAmount - invoice.discount;
+
+        const updatedInvoice: Invoice = {
+            ...invoice,
+            lineItems,
+            subtotal,
+            taxAmount,
+            total,
+        };
+
+        const { id, ...payload } = updatedInvoice;
+        await updateInvoice(id, payload);
+
+        setCustomerInvoices((prev) =>
+            prev.map((item) => (item.id === id ? updatedInvoice : item))
+        );
+        if (selectedInvoice?.id === id) {
+            setSelectedInvoice(updatedInvoice);
+        }
+    };
 
     useEffect(() => {
         loadData();
@@ -58,12 +111,17 @@ export default function ImportShipmentForm() {
 
         // Auto-populate customer name when customer is selected
         if (field === 'customerId') {
+            setSelectedInvoice(null);
+            setLinkedInvoiceId('');
             const customer = customers.find((c) => c.id === value);
             if (customer) {
                 setFormValues((prev) => ({
                     ...prev,
                     customerId: value,
                     customerName: customer.customerName,
+                    invoiceId: '',
+                    invoiceNumber: '',
+                    invoiceValue: '',
                 }));
             }
         }
@@ -101,11 +159,13 @@ export default function ImportShipmentForm() {
         listInvoicesByCustomer(formValues.customerId)
             .then((data) => {
                 setCustomerInvoices(data);
-                setLinkedInvoiceId('');
+                const existing = data.find((invoice) => invoice.id === formValues.invoiceId);
+                setSelectedInvoice(existing ?? null);
+                setLinkedInvoiceId(existing ? existing.id : '');
             })
             .catch((error) => console.error('Failed to load invoices', error))
             .finally(() => setInvoiceLoading(false));
-    }, [formValues.customerId]);
+    }, [formValues.customerId, formValues.invoiceId]);
 
     const handleLoadShipment = () => {
         if (!selectedShipmentId) return;
@@ -123,16 +183,26 @@ export default function ImportShipmentForm() {
             setEditMode(true);
             setSaveMessage(null);
             setSaveError(null);
+            setLinkedInvoiceId(shipment.invoiceId || '');
         }
     };
 
     const handleInvoiceSelect = (invoiceId: string) => {
         setLinkedInvoiceId(invoiceId);
-        if (!invoiceId) return;
-        const invoice = customerInvoices.find((inv) => inv.id === invoiceId);
-        if (invoice) {
+        if (!invoiceId) {
+            setSelectedInvoice(null);
             setFormValues((prev) => ({
                 ...prev,
+                invoiceId: '',
+            }));
+            return;
+        }
+        const invoice = customerInvoices.find((inv) => inv.id === invoiceId);
+        if (invoice) {
+            setSelectedInvoice(invoice);
+            setFormValues((prev) => ({
+                ...prev,
+                invoiceId: invoice.id,
                 invoiceNumber: invoice.invoiceNumber,
                 invoiceValue: invoice.total.toFixed(2),
                 currency: invoice.currency || prev.currency,
@@ -158,26 +228,31 @@ export default function ImportShipmentForm() {
         try {
             setIsSaving(true);
 
+            const payloadValues: ImportShipmentFormValues = { ...formValues };
+
             if (editMode && selectedShipmentId) {
-                // Update existing shipment
-                await updateShipment(selectedShipmentId, formValues);
+                await updateShipment(selectedShipmentId, payloadValues);
                 setShipments((prev) =>
-                    prev.map((s) => (s.id === selectedShipmentId ? { ...s, ...formValues } : s))
+                    prev.map((s) => (s.id === selectedShipmentId ? { ...s, ...payloadValues } : s))
                 );
                 setSaveMessage('Import shipment updated successfully');
             } else {
-                // Create new shipment
-                if (!formValues.jobNumber) {
-                    formValues.jobNumber = generateImportJobNumber();
+                if (!payloadValues.jobNumber) {
+                    payloadValues.jobNumber = generateImportJobNumber();
                 }
-                const newShipment = await createImportShipment(formValues);
+                const newShipment = await createImportShipment(payloadValues);
                 setShipments((prev) => [newShipment, ...prev]);
                 setSaveMessage('Import shipment created successfully');
             }
 
+            await syncInvoiceFromShipment(payloadValues);
+
             setFormValues(emptyImportShipmentForm());
             setEditMode(false);
             setSelectedShipmentId('');
+            setCustomerInvoices([]);
+            setLinkedInvoiceId('');
+            setSelectedInvoice(null);
         } catch (error) {
             console.error('Failed to save shipment', error);
             setSaveError('Failed to save shipment. Please try again.');
@@ -192,6 +267,9 @@ export default function ImportShipmentForm() {
         setSaveMessage(null);
         setEditMode(false);
         setSelectedShipmentId('');
+        setCustomerInvoices([]);
+        setLinkedInvoiceId('');
+        setSelectedInvoice(null);
     };
 
     return (
