@@ -19,8 +19,14 @@ import {
 import { listVendors } from '@/services/vendors';
 import { VendorProfile } from '@/models/profiles';
 import { convertCurrency, formatCurrencyValue, getCurrencyOptions } from '@/lib/currency';
-import { getInvoiceById, listInvoicesByVendor, updateInvoice } from '@/services/invoices';
-import { Invoice } from '@/models/invoices';
+import {
+    createInvoice,
+    getInvoiceById,
+    listInvoicesByVendor,
+    updateInvoice,
+    generateInvoiceNumber,
+} from '@/services/invoices';
+import { Invoice, InvoiceFormValues } from '@/models/invoices';
 
 export default function VendorBills() {
     const [bills, setBills] = useState<VendorBill[]>([]);
@@ -135,14 +141,72 @@ export default function VendorBills() {
         }
     };
 
-    const syncInvoiceFromBill = async (billValues: VendorBillFormValues, billId?: string) => {
-        if (!billValues.invoiceId) return;
-        let invoice =
-            (selectedInvoice && selectedInvoice.id === billValues.invoiceId
+    const syncInvoiceFromBill = async (billValues: VendorBillFormValues, billId?: string | null) => {
+        let invoice: Invoice | null =
+            (selectedInvoice && billValues.invoiceId && selectedInvoice.id === billValues.invoiceId
                 ? selectedInvoice
                 : vendorInvoices.find((inv) => inv.id === billValues.invoiceId)) || null;
-        if (!invoice) {
+        if (!invoice && billValues.invoiceId) {
             invoice = await getInvoiceById(billValues.invoiceId);
+        }
+        if (!invoice) {
+            if (!billValues.vendorId) return;
+            const invoiceNumber = billValues.billNumber || generateInvoiceNumber('BILL');
+            const invoicePayload: InvoiceFormValues = {
+                invoiceNumber,
+                invoiceDate: billValues.date || new Date().toISOString().split('T')[0],
+                dueDate: billValues.dueDate || '',
+                partyType: 'vendor',
+                partyId: billValues.vendorId,
+                partyName: billValues.vendorName,
+                partyAddress: '',
+                partyTaxId: '',
+                customerId: '',
+                customerName: '',
+                customerAddress: '',
+                customerTaxId: '',
+                vendorId: billValues.vendorId,
+                vendorName: billValues.vendorName,
+                vendorAddress: '',
+                vendorTaxId: '',
+                jobNumber: billValues.jobNumber,
+                poNumber: '',
+                lineItems: [
+                    {
+                        id: billValues.jobNumber || invoiceNumber,
+                        description: billValues.description || `Vendor Bill ${invoiceNumber}`,
+                        quantity: 1,
+                        unitPrice: billValues.amount,
+                        amount: billValues.amount,
+                    },
+                ],
+                subtotal: billValues.amount,
+                taxRate: 0,
+                taxAmount: 0,
+                discount: 0,
+                total: billValues.amount,
+                currency: billValues.currency || 'USD',
+                paymentTerms: '',
+                bankDetails: '',
+                notes: billValues.description || '',
+                status: billValues.status === 'paid' ? 'paid' : 'sent',
+                paidAmount: billValues.status === 'paid' ? billValues.amount : 0,
+                paidDate:
+                    billValues.status === 'paid'
+                        ? billValues.paidDate || new Date().toISOString().split('T')[0]
+                        : '',
+            };
+            invoice = await createInvoice(invoicePayload);
+            billValues.invoiceId = invoice.id;
+            setVendorInvoices((prev) => [invoice!, ...prev]);
+            setLinkedInvoiceId(invoice.id);
+            setSelectedInvoice(invoice);
+            if (billId) {
+                await updateVendorBill(billId, { invoiceId: invoice.id });
+                setBills((prev) =>
+                    prev.map((entry) => (entry.id === billId ? { ...entry, invoiceId: invoice!.id } : entry)),
+                );
+            }
         }
         if (!invoice) return;
 
@@ -235,7 +299,8 @@ export default function VendorBills() {
         event.preventDefault();
         if (!formValues.vendorId) return;
 
-        const payloadValues: VendorBillFormValues = {
+        let billRecordId = selectedBillId;
+        let payloadValues: VendorBillFormValues = {
             ...formValues,
             jobNumber: formValues.jobNumber || generateVendorJobNumber(),
         };
@@ -247,10 +312,26 @@ export default function VendorBills() {
                 setBills((prev) => prev.map((bill) => (bill.id === selectedBillId ? { ...bill, ...payloadValues } : bill)));
             } else {
                 const created = await createVendorBill(payloadValues);
+                payloadValues = {
+                    billNumber: created.billNumber,
+                    jobNumber: created.jobNumber,
+                    vendorId: created.vendorId,
+                    vendorName: created.vendorName,
+                    invoiceId: created.invoiceId || '',
+                    amount: created.amount,
+                    currency: created.currency,
+                    date: created.date,
+                    dueDate: created.dueDate,
+                    description: created.description,
+                    status: created.status,
+                    category: created.category,
+                    paidDate: created.paidDate,
+                };
+                billRecordId = created.id;
                 setBills((prev) => [created, ...prev]);
             }
 
-            await syncInvoiceFromBill(payloadValues, editMode ? selectedBillId : undefined);
+            await syncInvoiceFromBill(payloadValues, billRecordId);
             resetForm();
         } catch (error) {
             console.error('Failed to save vendor bill', error);
