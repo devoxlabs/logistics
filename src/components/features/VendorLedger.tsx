@@ -9,6 +9,9 @@ import { listInvoices } from '@/services/invoices';
 import { Invoice } from '@/models/invoices';
 import { formatCurrencyValue, getCurrencyOptions } from '@/lib/currency';
 import { deriveLedgerEntries } from '@/lib/ledger';
+import DetailDialog from '@/components/ui/DetailDialog';
+
+type LedgerEntryWithBalance = ReturnType<typeof deriveLedgerEntries>[number] & { balance: number };
 
 export default function VendorLedger() {
     const [vendors, setVendors] = useState<VendorProfile[]>([]);
@@ -16,6 +19,7 @@ export default function VendorLedger() {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [loading, setLoading] = useState(true);
     const [displayCurrency, setDisplayCurrency] = useState('USD');
+    const [detailEntry, setDetailEntry] = useState<LedgerEntryWithBalance | null>(null);
 
     const loadData = async () => {
         try {
@@ -34,13 +38,17 @@ export default function VendorLedger() {
         void loadData();
     }, []);
 
+    useEffect(() => {
+        setDetailEntry(null);
+    }, [selectedVendorId]);
+
     const selectedVendor = vendors.find((v) => v.id === selectedVendorId);
 
     const filteredInvoices = invoices.filter((inv) => inv.partyId === selectedVendorId);
     const ledgerEntries = deriveLedgerEntries(filteredInvoices, displayCurrency);
 
     let runningBalance = 0;
-    const entriesWithBalance = ledgerEntries.map((entry) => {
+    const entriesWithBalance: LedgerEntryWithBalance[] = ledgerEntries.map((entry) => {
         runningBalance += entry.outstanding;
         return {
             ...entry,
@@ -178,7 +186,11 @@ export default function VendorLedger() {
                                         </thead>
                                         <tbody>
                                             {entriesWithBalance.map((entry) => (
-                                                <tr key={entry.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150">
+                                                <tr
+                                                    key={entry.id}
+                                                    className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150 cursor-pointer"
+                                                    onClick={() => setDetailEntry(entry)}
+                                                >
                                                     <td className="px-4 py-3 text-sm text-slate-700">{entry.date}</td>
                                                     <td className="px-4 py-3 text-sm text-slate-700">{entry.description}</td>
                                                     <td className="px-4 py-3 text-sm font-medium text-primary">{entry.jobNumber || '-'}</td>
@@ -199,8 +211,12 @@ export default function VendorLedger() {
                                 </div>
 
                                 <div className="md:hidden space-y-3">
-                                    {entriesWithBalance.map((entry) => (
-                                        <div key={entry.id} className="bg-white border border-slate-200 rounded-lg p-4">
+                            {entriesWithBalance.map((entry) => (
+                                <div
+                                    key={entry.id}
+                                    className="bg-white border border-slate-200 rounded-lg p-4 cursor-pointer"
+                                    onClick={() => setDetailEntry(entry)}
+                                >
                                             <div className="flex items-start justify-between mb-3">
                                                 <div>
                                                     <div className="text-sm font-semibold text-slate-900 mb-1">{entry.description}</div>
@@ -245,6 +261,53 @@ export default function VendorLedger() {
                     <p className="text-sm">Please select a vendor to view their ledger</p>
                 </div>
             )}
+            {detailEntry && (
+                <DetailDialog
+                    title={`Vendor Entry • ${detailEntry.invoiceNumber || detailEntry.description}`}
+                    onClose={() => setDetailEntry(null)}
+                >
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <LedgerDetailInfo label="Date" value={detailEntry.date} />
+                            <LedgerDetailInfo label="Vendor" value={detailEntry.partyName} />
+                            <LedgerDetailInfo label="Status" value={detailEntry.status} />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <LedgerDetailInfo label="Invoice #" value={detailEntry.invoiceNumber || '—'} />
+                            <LedgerDetailInfo label="Job #" value={detailEntry.jobNumber || '—'} />
+                            <LedgerDetailInfo label="Description" value={detailEntry.description || '—'} />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <LedgerDetailInfo
+                                label="Payable"
+                                value={detailEntry.outstanding > 0 ? formatCurrencyValue(detailEntry.outstanding, displayCurrency) : '—'}
+                            />
+                            <LedgerDetailInfo
+                                label="Paid"
+                                value={detailEntry.paid > 0 ? formatCurrencyValue(detailEntry.paid, displayCurrency) : '—'}
+                            />
+                            <LedgerDetailInfo
+                                label="Balance"
+                                value={formatCurrencyValue(detailEntry.balance, displayCurrency)}
+                            />
+                        </div>
+                    </div>
+                </DetailDialog>
+            )}
+        </div>
+    );
+}
+
+type LedgerDetailInfoProps = {
+    label: string;
+    value?: string;
+};
+
+function LedgerDetailInfo({ label, value }: LedgerDetailInfoProps) {
+    return (
+        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+            <p className="text-[11px] uppercase tracking-wide text-slate-500 mb-0.5">{label}</p>
+            <p className="text-sm font-medium text-slate-900 break-words">{value || '—'}</p>
         </div>
     );
 }

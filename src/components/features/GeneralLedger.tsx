@@ -11,6 +11,8 @@ import { listExpenses } from '@/services/expenses';
 import { Expense, EXPENSE_CATEGORIES } from '@/models/expenses';
 import { listVendorBills } from '@/services/vendorBills';
 import { VendorBill } from '@/models/vendorBills';
+type LedgerEntryWithBalance = DerivedLedgerEntry & { balance: number };
+import DetailDialog from '@/components/ui/DetailDialog';
 
 type LedgerView = 'receivable' | 'payable' | 'expenses';
 
@@ -21,6 +23,7 @@ export default function GeneralLedger() {
     const [loading, setLoading] = useState(true);
     const [displayCurrency, setDisplayCurrency] = useState('USD');
     const [view, setView] = useState<LedgerView>('receivable');
+    const [detailEntry, setDetailEntry] = useState<LedgerEntryWithBalance | null>(null);
 
     const loadData = async () => {
         try {
@@ -39,6 +42,10 @@ export default function GeneralLedger() {
     useEffect(() => {
         void loadData();
     }, []);
+
+    useEffect(() => {
+        setDetailEntry(null);
+    }, [view]);
 
     const filteredInvoices = useMemo(
         () => invoices.filter((inv) => (inv.partyType ?? 'customer') === 'customer'),
@@ -64,7 +71,7 @@ export default function GeneralLedger() {
         view === 'receivable' ? invoiceEntries : view === 'payable' ? vendorEntries : expenseEntries;
 
     let runningBalance = 0;
-    const entriesWithBalance = activeEntries.map((entry) => {
+    const entriesWithBalance: LedgerEntryWithBalance[] = activeEntries.map((entry) => {
         runningBalance += entry.total - entry.paid;
         return { ...entry, balance: runningBalance };
     });
@@ -226,6 +233,7 @@ export default function GeneralLedger() {
                                             entry={entry}
                                             currency={displayCurrency}
                                             showCategory={view === 'expenses'}
+                                            onSelect={() => setDetailEntry(entry)}
                                         />
                                     ))}
                                 </tbody>
@@ -234,7 +242,11 @@ export default function GeneralLedger() {
 
                         <div className="md:hidden space-y-3">
                             {entriesWithBalance.map((entry) => (
-                                <div key={entry.id} className="bg-white border border-slate-200 rounded-lg p-4">
+                                <div
+                                    key={entry.id}
+                                    className="bg-white border border-slate-200 rounded-lg p-4 cursor-pointer"
+                                    onClick={() => setDetailEntry(entry)}
+                                >
                                     <div className="flex items-start justify-between mb-2">
                                         <div>
                                             <div className="text-sm font-semibold text-slate-900">{entry.partyName}</div>
@@ -264,6 +276,43 @@ export default function GeneralLedger() {
                     </>
                 )}
             </div>
+            {detailEntry && (
+                <DetailDialog
+                    title={`Ledger Entry • ${detailEntry.invoiceNumber || detailEntry.description}`}
+                    onClose={() => setDetailEntry(null)}
+                >
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <LedgerDetailInfo label="Date" value={detailEntry.date} />
+                            <LedgerDetailInfo label="Party" value={detailEntry.partyName} />
+                            <LedgerDetailInfo label="Status" value={detailEntry.status} />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <LedgerDetailInfo label="Invoice #" value={detailEntry.invoiceNumber || '—'} />
+                            <LedgerDetailInfo label="Job #" value={detailEntry.jobNumber || '—'} />
+                            {view === 'expenses' && detailEntry.category ? (
+                                <LedgerDetailInfo
+                                    label="Category"
+                                    value={EXPENSE_CATEGORIES.find((cat) => cat.value === detailEntry.category)?.label || detailEntry.category}
+                                />
+                            ) : (
+                                <LedgerDetailInfo label="Description" value={detailEntry.description || '—'} />
+                            )}
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <LedgerDetailInfo
+                                label={view === 'payable' ? 'Payable' : 'Debit'}
+                                value={formatCurrencyValue(detailEntry.total, displayCurrency)}
+                            />
+                            <LedgerDetailInfo
+                                label={view === 'payable' ? 'Paid' : 'Credit'}
+                                value={formatCurrencyValue(detailEntry.paid, displayCurrency)}
+                            />
+                            <LedgerDetailInfo label="Balance" value={formatCurrencyValue(detailEntry.balance, displayCurrency)} />
+                        </div>
+                    </div>
+                </DetailDialog>
+            )}
         </div>
     );
 }
@@ -295,15 +344,19 @@ type LedgerRowProps = {
     entry: DerivedLedgerEntry & { balance: number };
     currency: string;
     showCategory?: boolean;
+    onSelect?: () => void;
 };
 
-function LedgerRow({ entry, currency, showCategory }: LedgerRowProps) {
+function LedgerRow({ entry, currency, showCategory, onSelect }: LedgerRowProps) {
     const categoryLabel = entry.category
         ? EXPENSE_CATEGORIES.find((cat) => cat.value === entry.category)?.label || entry.category
         : '';
 
     return (
-        <tr className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150">
+        <tr
+            className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150 cursor-pointer"
+            onClick={onSelect}
+        >
             <td className="px-4 py-3 text-sm text-slate-700">{entry.date}</td>
             <td className="px-4 py-3 text-sm text-slate-700">{entry.partyName}</td>
             {showCategory && <td className="px-4 py-3 text-xs text-blue-600">{categoryLabel}</td>}
@@ -319,5 +372,19 @@ function LedgerRow({ entry, currency, showCategory }: LedgerRowProps) {
                 {formatCurrencyValue(entry.balance, currency)}
             </td>
         </tr>
+    );
+}
+
+type LedgerDetailInfoProps = {
+    label: string;
+    value?: string;
+};
+
+function LedgerDetailInfo({ label, value }: LedgerDetailInfoProps) {
+    return (
+        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+            <p className="text-[11px] uppercase tracking-wide text-slate-500 mb-0.5">{label}</p>
+            <p className="text-sm font-medium text-slate-900 break-words">{value || '—'}</p>
+        </div>
     );
 }

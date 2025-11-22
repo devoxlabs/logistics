@@ -9,6 +9,7 @@ import { listCustomers } from '@/services/customers';
 import { listVendors } from '@/services/vendors';
 import { CustomerProfile, VendorProfile } from '@/models/profiles';
 import FeatureHeader from '@/components/ui/FeatureHeader';
+import DetailDialog from '@/components/ui/DetailDialog';
 import { formatCurrencyValue, getCurrencyOptions } from '@/lib/currency';
 
 type InvoiceBillingProps = {
@@ -307,7 +308,11 @@ export default function InvoiceBilling({ initialTab = 'invoice' }: InvoiceBillin
                                     </thead>
                                     <tbody>
                                         {filteredInvoices.map((invoice) => (
-                                            <tr key={invoice.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150">
+                                            <tr
+                                                key={invoice.id}
+                                                className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150 cursor-pointer"
+                                                onClick={() => openInvoiceDetail(invoice)}
+                                            >
                                                 <td className="px-4 py-3 text-sm font-medium text-primary">{invoice.invoiceNumber}</td>
                                                 <td className="px-4 py-3 text-sm text-slate-700">{invoice.invoiceDate}</td>
                                                 <td className="px-4 py-3 text-sm text-slate-700">{invoice.partyName || invoice.customerName || invoice.vendorName}</td>
@@ -328,7 +333,10 @@ export default function InvoiceBilling({ initialTab = 'invoice' }: InvoiceBillin
                                                 <td className="px-4 py-3 text-right">
                                                     <button
                                                         type="button"
-                                                        onClick={() => openInvoiceDetail(invoice)}
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            openInvoiceDetail(invoice);
+                                                        }}
                                                         className="inline-flex items-center rounded-md border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer"
                                                     >
                                                         View
@@ -466,30 +474,20 @@ export default function InvoiceBilling({ initialTab = 'invoice' }: InvoiceBillin
             )}
         </div>
         {detailInvoice && (
-            <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 px-4 py-10">
-                <div className="w-full max-w-3xl rounded-xl bg-white shadow-2xl border border-slate-200 max-h-full overflow-y-auto p-6 space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-lg font-semibold text-slate-900">{detailInvoice.invoiceNumber}</h2>
-                            <p className="text-sm text-slate-500">{detailInvoice.partyName || detailInvoice.customerName || detailInvoice.vendorName}</p>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={closeInvoiceDetail}
-                            className="rounded-full border border-slate-200 w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 cursor-pointer"
-                        >
-                            <svg className="h-4 w-4" viewBox="0 0 24 24" stroke="currentColor" fill="none">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
+            <DetailDialog title={detailInvoice.invoiceNumber} onClose={closeInvoiceDetail}>
+                <div className="space-y-5">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <DetailInfo label="Party" value={detailInvoice.partyName || detailInvoice.customerName || detailInvoice.vendorName} />
+                        <DetailInfo label="Invoice Date" value={detailInvoice.invoiceDate || '—'} />
+                        <DetailInfo label="Due Date" value={detailInvoice.dueDate || '—'} />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
                         <div>
                             <p className="text-xs text-slate-500">Status</p>
                             <select
                                 value={detailStatus}
                                 onChange={(e) => setDetailStatus(e.target.value as Invoice['status'])}
-                                className="mt-1 w-full rounded-lg border border-input px-3 py-2 text-sm"
+                                className="mt-1 w-full rounded-lg border border-input px-3 py-2 text-sm cursor-pointer"
                             >
                                 {['draft', 'sent', 'paid', 'partially_paid', 'overdue', 'cancelled'].map((status) => (
                                     <option key={status} value={status}>
@@ -498,16 +496,8 @@ export default function InvoiceBilling({ initialTab = 'invoice' }: InvoiceBillin
                                 ))}
                             </select>
                         </div>
-                        <div>
-                            <p className="text-xs text-slate-500">Currency</p>
-                            <p className="text-sm font-medium text-slate-800">{detailInvoice.currency || 'USD'}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-500">Total</p>
-                            <p className="text-sm font-semibold text-slate-900">
-                                {formatCurrencyValue(detailInvoice.total, detailInvoice.currency || 'USD')}
-                            </p>
-                        </div>
+                        <DetailInfo label="Currency" value={detailInvoice.currency || 'USD'} />
+                        <DetailInfo label="Total" value={formatCurrencyValue(detailInvoice.total, detailInvoice.currency || 'USD')} />
                     </div>
                     <div>
                         <h3 className="text-sm font-semibold text-slate-800 mb-2">Line Items</h3>
@@ -534,14 +524,7 @@ export default function InvoiceBilling({ initialTab = 'invoice' }: InvoiceBillin
                             <p className="text-xs text-slate-500">Line items will appear when shipments are linked.</p>
                         )}
                     </div>
-                    <div className="flex justify-end gap-2">
-                        <button
-                            type="button"
-                            onClick={closeInvoiceDetail}
-                            className="rounded-md border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 cursor-pointer"
-                        >
-                            Close
-                        </button>
+                    <div className="flex justify-end">
                         <button
                             type="button"
                             onClick={handleDetailStatusSave}
@@ -552,8 +535,22 @@ export default function InvoiceBilling({ initialTab = 'invoice' }: InvoiceBillin
                         </button>
                     </div>
                 </div>
-            </div>
+            </DetailDialog>
         )}
         </>
+    );
+}
+
+type DetailInfoProps = {
+    label: string;
+    value?: string;
+};
+
+function DetailInfo({ label, value }: DetailInfoProps) {
+    return (
+        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+            <p className="text-[11px] uppercase tracking-wide text-slate-500 mb-0.5">{label}</p>
+            <p className="text-sm font-medium text-slate-900 break-words">{value || '—'}</p>
+        </div>
     );
 }

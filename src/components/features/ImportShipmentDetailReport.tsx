@@ -6,6 +6,7 @@ import { ImportShipment } from '@/models/shipments';
 import { listImportShipments } from '@/services/shipments';
 import FeatureHeader from '@/components/ui/FeatureHeader';
 import { convertCurrency, formatCurrencyValue, getCurrencyOptions } from '@/lib/currency';
+import DetailDialog from '@/components/ui/DetailDialog';
 
 export default function ImportShipmentDetailReport() {
     const [shipments, setShipments] = useState<ImportShipment[]>([]);
@@ -14,6 +15,7 @@ export default function ImportShipmentDetailReport() {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [displayCurrency, setDisplayCurrency] = useState('USD');
+    const [detailShipment, setDetailShipment] = useState<ImportShipment | null>(null);
 
     useEffect(() => {
         loadShipments();
@@ -212,7 +214,8 @@ export default function ImportShipmentDetailReport() {
                                     {filteredShipments.map((shipment) => (
                                         <tr
                                             key={shipment.id}
-                                            className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150"
+                                            className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150 cursor-pointer"
+                                            onClick={() => setDetailShipment(shipment)}
                                         >
                                             <td className="px-4 py-3 text-sm font-medium text-primary">
                                                 {shipment.jobNumber}
@@ -249,7 +252,11 @@ export default function ImportShipmentDetailReport() {
                         {/* Mobile Card View */}
                         <div className="md:hidden space-y-3">
                             {filteredShipments.map((shipment) => (
-                                <div key={shipment.id} className="bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                                <div
+                                    key={shipment.id}
+                                    className="bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+                                    onClick={() => setDetailShipment(shipment)}
+                                >
                                     <div className="flex items-start justify-between mb-3">
                                         <div>
                                             <div className="text-sm font-semibold text-primary mb-1">{shipment.jobNumber}</div>
@@ -292,6 +299,87 @@ export default function ImportShipmentDetailReport() {
                     </>
                 )}
             </div>
+            {detailShipment && (
+                <DetailDialog
+                    title={`Import Shipment • ${detailShipment.jobNumber || detailShipment.billOfLading || 'Details'}`}
+                    onClose={() => setDetailShipment(null)}
+                >
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <DetailRow label="Customer" value={detailShipment.customerName} />
+                            <DetailRow label="Job Number" value={detailShipment.jobNumber} />
+                            <DetailRow label="Bill of Lading" value={detailShipment.billOfLading} />
+                            <DetailRow label="Container" value={detailShipment.containerNumber || 'N/A'} />
+                            <DetailRow label="Status" value={detailShipment.status} />
+                            <DetailRow label="Mode" value={detailShipment.mode} />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <DetailRow label="Port of Loading" value={detailShipment.portOfLoading} />
+                            <DetailRow label="Port of Discharge" value={detailShipment.portOfDischarge} />
+                            <DetailRow label="Delivery Date" value={detailShipment.deliveryDate || 'Pending'} />
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-slate-200 p-4">
+                            <h4 className="text-sm font-semibold text-slate-900 mb-3">Charges</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                                <DetailRow
+                                    label="Freight"
+                                    value={formatCurrencyValue(parseFloat(detailShipment.freightCharges || '0') || 0, detailShipment.currency || 'USD')}
+                                />
+                                <DetailRow
+                                    label="Insurance"
+                                    value={formatCurrencyValue(parseFloat(detailShipment.insuranceCharges || '0') || 0, detailShipment.currency || 'USD')}
+                                />
+                                <DetailRow
+                                    label="Customs Duty"
+                                    value={formatCurrencyValue(parseFloat(detailShipment.customsDuty || '0') || 0, detailShipment.currency || 'USD')}
+                                />
+                                <DetailRow
+                                    label="Logistic Charges"
+                                    value={formatCurrencyValue(parseFloat(detailShipment.logisticCharges || '0') || 0, detailShipment.currency || 'USD')}
+                                />
+                                <DetailRow
+                                    label="Other Charges"
+                                    value={formatCurrencyValue(parseFloat(detailShipment.otherCharges || '0') || 0, detailShipment.currency || 'USD')}
+                                />
+                                <DetailRow
+                                    label="Total"
+                                    value={formatCurrencyValue(parseFloat(detailShipment.totalCharges || '0') || 0, detailShipment.currency || 'USD')}
+                                />
+                            </div>
+                        </div>
+                        {(detailShipment.specialInstructions || detailShipment.remarks) && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {detailShipment.specialInstructions && (
+                                    <div className="bg-white border border-slate-200 rounded-lg p-3">
+                                        <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">Instructions</p>
+                                        <p className="text-sm text-slate-700">{detailShipment.specialInstructions}</p>
+                                    </div>
+                                )}
+                                {detailShipment.remarks && (
+                                    <div className="bg-white border border-slate-200 rounded-lg p-3">
+                                        <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">Remarks</p>
+                                        <p className="text-sm text-slate-700">{detailShipment.remarks}</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </DetailDialog>
+            )}
+        </div>
+    );
+}
+
+type DetailRowProps = {
+    label: string;
+    value?: string;
+};
+
+function DetailRow({ label, value }: DetailRowProps) {
+    return (
+        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+            <p className="text-[11px] uppercase tracking-wide text-slate-500 mb-0.5">{label}</p>
+            <p className="text-sm font-medium text-slate-900 break-words">{value || '—'}</p>
         </div>
     );
 }
