@@ -61,6 +61,15 @@ src/
 └─ services/                    # CRUD/service modules (customers, vendors, invoices...)
 ```
 
+### Files You’ll Touch Most Often
+
+| Area | Primary Files | Notes |
+| --- | --- | --- |
+| Shipments | `src/components/features/ImportShipmentForm.tsx`, `ExportShipmentForm.tsx`, `src/services/shipments.ts` | Linking jobs to invoices + calculating totals lives here. |
+| Billing / Vendor Bills | `InvoiceBilling.tsx`, `VendorBills.tsx`, `src/services/invoices.ts`, `src/services/vendorBills.ts` | `syncInvoiceFromBill` auto-creates/updates vendor invoices. |
+| Ledgers & Reports | `CustomerLedger.tsx`, `VendorLedger.tsx`, `GeneralLedger.tsx`, `src/services/financials.ts`, `src/lib/ledger.ts` | Any math change happens in the service/helper layer, not the components. |
+| UI Shell | `src/components/ui/*`, `src/components/Sidebar.tsx`, `src/app/page.tsx` | Update these if you add a new feature tab or shared component. |
+
 ---
 
 ## Key Workflows
@@ -86,8 +95,73 @@ src/
 
 ### Reporting
 - Profit & Loss: start/end date filters share a single responsive row; statements combine invoices + vendor bills + expenses.
-- Balance Sheet: “As of date” filter is centered and drives receivables, account payables (vendor invoices + standalone bills), and equity.
+- Balance Sheet: "As of date" filter is centered and drives receivables, account payables (vendor invoices + standalone bills), and equity.
 - General Ledger detail dialogs help auditors drill into specific transactions without paging away.
+
+---
+
+## Developer Notes & Extension Guide
+
+### Service Layer Contracts
+
+All persistence goes through `src/services`. Each service exposes simple CRUD helpers:
+
+```ts
+// src/services/customers.ts
+export async function listCustomers(): Promise<CustomerProfile[]> { /* ... */ }
+export async function createCustomer(values: CustomerFormValues): Promise<CustomerProfile> { /* ... */ }
+export async function updateCustomer(id: string, values: CustomerFormValues): Promise<void> { /* ... */ }
+export async function deleteCustomer(id: string): Promise<void> { /* ... */ }
+```
+
+**When adding/changing fields**
+1. Update the model interface (`src/models/*.ts`).
+2. Update forms/components to collect/show the field.
+3. Update service payloads (`create*`, `update*`) so Firestore (or your DB) stores it.
+4. Update derived helpers (`src/lib/ledger.ts`, `src/services/financials.ts`) if the field participates in totals.
+
+### Removing Firebase / Using Another DB
+
+| Step | What to touch | Tips |
+| --- | --- | --- |
+| Swap client | Replace `getFirebaseDb()` in `src/lib/firebase.ts` with your DB client (Prisma, Supabase, Mongo, etc.). | Keep the exported helpers (e.g., `getFirebaseAuth`) or rename and update imports. |
+| Rewrite services | Update `src/services/*.ts` to use the new client. | Preserve return shapes from services so UI stays unchanged. |
+| Replace auth | Update `src/services/authClient.ts` + `/api/auth/set-cookie` to use your auth provider. | Ensure `proxy.ts` verifies the new session token. |
+| Update rules/security | Firestore rules become SQL row-level security or API auth. Scope by tenant/user in the new backend. | Reference the Firestore rules in the README as a starting point. |
+
+**Example**: Port invoices to Prisma/PostgreSQL
+
+```ts
+// src/services/invoices.ts
+import prisma from '@/lib/prisma';
+
+export async function listInvoices(): Promise<Invoice[]> {
+  const rows = await prisma.invoice.findMany({ orderBy: { invoiceDate: 'desc' } });
+  return rows.map((row) => ({
+    ...row,
+    id: row.id,
+    lineItems: row.lineItems as InvoiceLineItem[],
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  }));
+}
+```
+
+### Where Logic Lives
+
+- **Math & conversions**: `src/lib/currency.ts`, `src/lib/ledger.ts`, `src/services/financials.ts`.
+- **Dialogs**: `src/components/ui/DetailDialog.tsx` handles scroll locking + animation. Wrap any detail content inside this component.
+- **Auto numbering**: `generateImportJobNumber`, `generateExportJobNumber`, and `generateVendorJobNumber` live in `src/services/shipments.ts` / `src/services/vendorBills.ts`.
+- **Invoice/bill syncing**: `syncInvoiceFromBill` inside `VendorBills.tsx`.
+
+### Quick Tweaks Cheat Sheet
+
+| Goal | Steps |
+| --- | --- |
+| Add a new vendor bill category | Update `VENDOR_BILL_CATEGORIES` + dropdowns in `VendorBills.tsx`. |
+| Change ledger columns | Extend `DerivedLedgerEntry` in `src/lib/ledger.ts`, then update each ledger component render. |
+| Add a brand-new feature tab | Create `src/components/features/MyFeature.tsx`, import it in `src/app/page.tsx`, and add the entry to `TAB_TITLES` + `Sidebar.tsx`. |
+| Backfill invoices for existing vendor bills | Loop through `listVendorBills()` and call `syncInvoiceFromBill` manually (see the function in `VendorBills.tsx`). |
 
 ---
 
@@ -141,6 +215,14 @@ src/
 - **Currency conversions**: use helpers from `src/lib/currency.ts` to keep totals consistent between invoices, bills, and ledgers.
 - **Testing**: plug in `vitest`/`@testing-library/react` for service and component tests (not included yet, but the project is TypeScript strict).
 - **Migration**: `services/` structure makes it straightforward to swap Firestore for Postgres/Supabase/Mongo. Update the service implementations, keep the rest of the app untouched.
+
+### Quick Checklist for Common Tweaks
+
+| Scenario | Checklist |
+| --- | --- |
+| Add new Firestore collection | 1) Create model in `src/models` 2) Add service in `src/services` 3) Build UI component under `src/components/features` 4) Add to sidebar + router. |
+| Replace Firebase Auth | Update `src/services/authClient.ts`, `/api/auth/set-cookie`, and `proxy.ts`. Verify new cookies inside middleware. |
+| Support multiple tenants | Add `tenantId` to models, filter by the signed-in user's tenant in every service, and update Firestore rules (or DB security) accordingly. |
 
 ---
 
