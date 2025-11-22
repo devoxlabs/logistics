@@ -57,8 +57,8 @@ export default function BalanceSheetReport() {
             />
 
             <div className="border-b border-slate-100 px-4 py-3 bg-slate-50">
-                <div className="flex flex-col md:flex-row gap-3 items-end max-w-md mx-auto">
-                    <div className="flex-1">
+                <div className="flex flex-col md:flex-row gap-3 items-center md:items-end justify-center max-w-lg mx-auto text-center">
+                    <div className="flex-1 w-full">
                         <label className="block text-sm font-medium text-slate-700 mb-2">As of Date</label>
                         <input
                             type="date"

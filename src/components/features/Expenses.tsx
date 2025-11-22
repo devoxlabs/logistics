@@ -225,52 +225,88 @@ export default function Expenses() {
                     ) : filteredExpenses.length === 0 ? (
                         <div className="py-10 text-center text-slate-400 text-sm">No expenses recorded</div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b border-slate-200 bg-slate-50">
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">Date</th>
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">Category</th>
-                                        <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">Amount</th>
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">Status</th>
-                                        <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredExpenses.map((expense) => (
-                                        <tr key={expense.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150">
-                                            <td className="px-4 py-3 text-sm text-slate-700">{expense.date}</td>
-                                            <td className="px-4 py-3 text-sm text-slate-700">
-                                                {EXPENSE_CATEGORIES.find((cat) => cat.value === expense.category)?.label || expense.category}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-right font-semibold text-slate-900">
-                                                {formatCurrencyValue(expense.amount, expense.currency)}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm">
-                                                <span
-                                                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border ${
-                                                        expense.status === 'paid'
-                                                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                                                            : 'border-amber-200 bg-amber-50 text-amber-700'
-                                                    }`}
-                                                >
-                                                    {expense.status === 'paid' ? 'Paid' : 'Pending'}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-right">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => void removeExpense(expense)}
-                                                    className="inline-flex items-center rounded-md border border-rose-200 px-3 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50 cursor-pointer"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </td>
+                        <>
+                            <div className="hidden md:block overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b border-slate-200 bg-slate-50">
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">Date</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">Category</th>
+                                            <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">Amount</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">Status</th>
+                                            <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                        {filteredExpenses.map((expense) => (
+                                            <tr key={expense.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150">
+                                                <td className="px-4 py-3 text-sm text-slate-700">{expense.date}</td>
+                                                <td className="px-4 py-3 text-sm text-slate-700">
+                                                    {EXPENSE_CATEGORIES.find((cat) => cat.value === expense.category)?.label || expense.category}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm text-right font-semibold text-slate-900">
+                                                    {formatCurrencyValue(expense.amount, expense.currency)}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm">
+                                                    <span
+                                                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border ${
+                                                            expense.status === 'paid'
+                                                                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                                                : 'border-amber-200 bg-amber-50 text-amber-700'
+                                                        }`}
+                                                    >
+                                                        {expense.status === 'paid' ? 'Paid' : 'Pending'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-sm text-right">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => void removeExpense(expense)}
+                                                        className="inline-flex items-center rounded-md border border-rose-200 px-3 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50 cursor-pointer"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="md:hidden space-y-3 p-3">
+                                {filteredExpenses.map((expense) => (
+                                    <div key={expense.id} className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm space-y-2">
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <p className="text-sm font-semibold text-slate-900">{EXPENSE_CATEGORIES.find((cat) => cat.value === expense.category)?.label || expense.category}</p>
+                                                <p className="text-xs text-slate-500">{expense.date}</p>
+                                            </div>
+                                            <span
+                                                className={`inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full border ${
+                                                    expense.status === 'paid'
+                                                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                                        : 'border-amber-200 bg-amber-50 text-amber-700'
+                                                }`}
+                                            >
+                                                {expense.status === 'paid' ? 'Paid' : 'Pending'}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between text-sm font-semibold text-slate-900">
+                                            <span>Amount</span>
+                                            <span>{formatCurrencyValue(expense.amount, expense.currency)}</span>
+                                        </div>
+                                        <div className="flex justify-end pt-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => void removeExpense(expense)}
+                                                className="inline-flex items-center rounded-md border border-rose-200 px-3 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50 cursor-pointer"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
                     )}
                 </div>
             </div>

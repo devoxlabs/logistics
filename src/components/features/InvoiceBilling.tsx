@@ -292,9 +292,10 @@ export default function InvoiceBilling({ initialTab = 'invoice' }: InvoiceBillin
                                 <p className="text-sm">No records found</p>
                             </div>
                         ) : (
-                            <div className="hidden md:block overflow-x-auto">
-                                <table className="w-full">
-                                    <thead>
+                            <>
+                                <div className="hidden md:block overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
                                         <tr className="border-b border-slate-200 bg-slate-50">
                                             <th className="text-left px-4 py-3 text-xs font-semibold text-slate-700">Invoice #</th>
                                             <th className="text-left px-4 py-3 text-xs font-semibold text-slate-700">Date</th>
@@ -346,7 +347,48 @@ export default function InvoiceBilling({ initialTab = 'invoice' }: InvoiceBillin
                                         ))}
                                     </tbody>
                                 </table>
-                            </div>
+                                </div>
+                                <div className="md:hidden space-y-3">
+                                    {filteredInvoices.map((invoice) => (
+                                        <div
+                                            key={invoice.id}
+                                            className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm cursor-pointer"
+                                            onClick={() => openInvoiceDetail(invoice)}
+                                        >
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div>
+                                                    <p className="text-sm font-semibold text-primary mb-0.5">{invoice.invoiceNumber}</p>
+                                                    <p className="text-xs text-slate-500">{invoice.invoiceDate}</p>
+                                                    <p className="text-xs text-slate-600 mt-1">{invoice.partyName || invoice.customerName || invoice.vendorName}</p>
+                                                </div>
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${getStatusColor(invoice.status)}`}>
+                                                    {invoice.status.replace('_', ' ')}
+                                                </span>
+                                            </div>
+                                            <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                                                <div className="rounded-lg border border-slate-200 px-2 py-1">
+                                                    <p className="text-[10px] uppercase text-slate-500">Amount</p>
+                                                    <p className="text-sm font-semibold text-slate-900">
+                                                        {formatCurrencyValue(invoice.total, invoice.currency || 'USD')}
+                                                    </p>
+                                                </div>
+                                                <div className="rounded-lg border border-slate-200 px-2 py-1">
+                                                    <p className="text-[10px] uppercase text-slate-500">Paid</p>
+                                                    <p className="text-sm font-semibold text-emerald-600">
+                                                        {formatCurrencyValue(invoice.paidAmount, invoice.currency || 'USD')}
+                                                    </p>
+                                                </div>
+                                                <div className="rounded-lg border border-slate-200 px-2 py-1">
+                                                    <p className="text-[10px] uppercase text-slate-500">Balance</p>
+                                                    <p className="text-sm font-semibold text-rose-600">
+                                                        {formatCurrencyValue(invoice.total - invoice.paidAmount, invoice.currency || 'USD')}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
                         )}
                     </div>
                 </>

@@ -58,8 +58,8 @@ export default function ProfitAndLoss() {
             />
 
             <div className="border-b border-slate-100 px-4 py-3 bg-slate-50">
-                <div className="flex flex-col md:flex-row gap-3 items-end">
-                    <div className="flex-1">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+                    <div className="col-span-2 sm:col-span-1">
                         <label className="block text-sm font-medium text-slate-700 mb-2">Start Date</label>
                         <input
                             type="date"
@@ -68,7 +68,7 @@ export default function ProfitAndLoss() {
                             className="w-full rounded-lg border-2 border-input bg-white px-4 py-2 text-sm hover:border-primary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                         />
                     </div>
-                    <div className="flex-1">
+                    <div className="col-span-2 sm:col-span-1">
                         <label className="block text-sm font-medium text-slate-700 mb-2">End Date</label>
                         <input
                             type="date"
@@ -79,7 +79,7 @@ export default function ProfitAndLoss() {
                     </div>
                     <button
                         onClick={loadStatement}
-                        className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary-hover active:scale-95 transition-all duration-200 cursor-pointer"
+                        className="col-span-2 lg:col-span-1 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary-hover active:scale-95 transition-all duration-200 cursor-pointer"
                     >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
