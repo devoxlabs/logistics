@@ -1,22 +1,22 @@
 export type ExpenseCategory =
-    | 'fuel'
-    | 'port_fees'
-    | 'customs'
-    | 'warehousing'
-    | 'airline_charges'
-    | 'logistics_overheads';
+    | 'bills'
+    | 'salaries'
+    | 'office_supplies'
+    | 'travel'
+    | 'marketing'
+    | 'miscellaneous';
 
 export const EXPENSE_CATEGORIES: Array<{
     value: ExpenseCategory;
     label: string;
     description: string;
 }> = [
-    { value: 'fuel', label: 'Fuel & Trucking', description: 'Fuel, trucking, and ground handling costs' },
-    { value: 'port_fees', label: 'Port & Terminal Fees', description: 'Port handling, loading/unloading, terminal storage' },
-    { value: 'customs', label: 'Customs & Duties', description: 'Customs brokerage, inspection, and duty payments' },
-    { value: 'warehousing', label: 'Warehousing', description: 'Warehouse rent, storage, and distribution centers' },
-    { value: 'airline_charges', label: 'Airline / Carrier Charges', description: 'Airline surcharges and carrier-specific fees' },
-    { value: 'logistics_overheads', label: 'Logistics Overheads', description: 'Administration, travel, and miscellaneous logistics overheads' },
+    { value: 'bills', label: 'Bills & Utilities', description: 'Electricity, water, telecom, rent-related bills' },
+    { value: 'salaries', label: 'Salaries & Wages', description: 'Payroll, stipends, and allowances for staff' },
+    { value: 'office_supplies', label: 'Office Supplies', description: 'Stationery, software subscriptions, consumables' },
+    { value: 'travel', label: 'Travel & Meals', description: 'Business travel, lodging, meals, and transport' },
+    { value: 'marketing', label: 'Marketing & Advertising', description: 'Campaigns, sponsorships, promotions, and PR' },
+    { value: 'miscellaneous', label: 'Miscellaneous', description: 'Other administrative or company-owned expenses' },
 ];
 
 export type ExpenseStatus = 'pending' | 'paid';
@@ -38,7 +38,7 @@ export type Expense = ExpenseFormValues & {
 };
 
 export const emptyExpenseForm = (): ExpenseFormValues => ({
-    category: 'fuel',
+    category: 'bills',
     amount: 0,
     currency: 'USD',
     date: new Date().toISOString().split('T')[0],

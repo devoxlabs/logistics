@@ -18,7 +18,7 @@ const EXPENSES_COLLECTION = 'expenses';
 const mapExpenseDoc = (data: Record<string, unknown>, id: string): Expense => {
     return {
         id,
-        category: (data.category as Expense['category']) ?? 'fuel',
+        category: (data.category as Expense['category']) ?? 'bills',
         amount: typeof data.amount === 'number' ? data.amount : 0,
         currency: (data.currency as string) || 'USD',
         date: (data.date as string) || '',

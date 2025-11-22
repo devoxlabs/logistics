@@ -43,18 +43,20 @@ export async function generateProfitLoss(
         .forEach((expense) => {
             const amount = convertCurrency(expense.amount || 0, expense.currency || 'USD', 'USD');
             switch (expense.category) {
-                case 'fuel':
-                case 'airline_charges':
-                    data.costOfServices.freightCosts += amount;
+                case 'bills':
+                    data.operatingExpenses.utilities += amount;
                     break;
-                case 'port_fees':
-                case 'customs':
-                    data.costOfServices.handlingCosts += amount;
+                case 'salaries':
+                    data.operatingExpenses.salaries += amount;
                     break;
-                case 'warehousing':
+                case 'office_supplies':
                     data.operatingExpenses.administrative += amount;
                     break;
-                case 'logistics_overheads':
+                case 'marketing':
+                    data.operatingExpenses.marketing += amount;
+                    break;
+                case 'travel':
+                case 'miscellaneous':
                 default:
                     data.operatingExpenses.other += amount;
                     break;

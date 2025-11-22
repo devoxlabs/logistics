@@ -3,7 +3,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import FeatureHeader from '@/components/ui/FeatureHeader';
-import { VendorBill, VendorBillFormValues, emptyVendorBillForm } from '@/models/vendorBills';
+import {
+    VendorBill,
+    VendorBillFormValues,
+    emptyVendorBillForm,
+    VENDOR_BILL_CATEGORIES,
+} from '@/models/vendorBills';
 import {
     createVendorBill,
     deleteVendorBill,
@@ -13,7 +18,6 @@ import {
 } from '@/services/vendorBills';
 import { listVendors } from '@/services/vendors';
 import { VendorProfile } from '@/models/profiles';
-import { EXPENSE_CATEGORIES } from '@/models/expenses';
 import { formatCurrencyValue, getCurrencyOptions } from '@/lib/currency';
 
 export default function VendorBills() {
@@ -310,10 +314,10 @@ export default function VendorBills() {
                                 <label className="block text-xs font-medium text-foreground/80 mb-1.5">Service Type</label>
                                 <select
                                     value={formValues.category}
-                                    onChange={(e) => handleFieldChange('category', e.target.value)}
+                                    onChange={(e) => handleFieldChange('category', e.target.value as VendorBillFormValues['category'])}
                                     className="w-full rounded-lg border-2 border-input bg-white px-3 py-2 text-sm hover:border-primary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 cursor-pointer"
                                 >
-                                    {EXPENSE_CATEGORIES.map((category) => (
+                                    {VENDOR_BILL_CATEGORIES.map((category) => (
                                         <option key={category.value} value={category.value}>
                                             {category.label}
                                         </option>

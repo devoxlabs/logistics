@@ -11,11 +11,11 @@ import {
     where,
 } from 'firebase/firestore';
 import { getFirebaseDb } from '@/lib/firebase';
-import { VendorBill, VendorBillFormValues } from '@/models/vendorBills';
+import { VendorBill, VendorBillFormValues, VENDOR_BILL_CATEGORIES } from '@/models/vendorBills';
 import { formatTimestamp } from '@/lib/firestoreUtils';
-import { EXPENSE_CATEGORIES } from '@/models/expenses';
 
 const COLLECTION = 'vendorBills';
+const DEFAULT_VENDOR_CATEGORY = VENDOR_BILL_CATEGORIES[0].value;
 
 export function generateVendorJobNumber(): string {
     const year = new Date().getFullYear();
@@ -38,7 +38,7 @@ const mapDoc = (data: Record<string, unknown>, id: string): VendorBill => {
         dueDate: (data.dueDate as string) || '',
         description: (data.description as string) || '',
         status: (data.status as VendorBill['status']) || 'pending',
-        category: EXPENSE_CATEGORIES.find((cat) => cat.value === data.category)?.value || 'fuel',
+        category: (VENDOR_BILL_CATEGORIES.find((cat) => cat.value === data.category)?.value as VendorBillFormValues['category']) || DEFAULT_VENDOR_CATEGORY,
         paidDate: (data.paidDate as string) || '',
         createdAt: formatTimestamp(data.createdAt),
         updatedAt: formatTimestamp(data.updatedAt),
