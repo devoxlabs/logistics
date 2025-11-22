@@ -32,6 +32,7 @@ const mapDoc = (data: Record<string, unknown>, id: string): VendorBill => {
         jobNumber: (data.jobNumber as string) || '',
         vendorId: (data.vendorId as string) || '',
         vendorName: (data.vendorName as string) || '',
+        invoiceId: (data.invoiceId as string) || '',
         amount: typeof data.amount === 'number' ? data.amount : 0,
         currency: (data.currency as string) || 'USD',
         date: (data.date as string) || '',

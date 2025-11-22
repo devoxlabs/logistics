@@ -25,6 +25,7 @@ export type VendorBillFormValues = {
     jobNumber: string;
     vendorId: string;
     vendorName: string;
+    invoiceId: string;
     amount: number;
     currency: string;
     date: string;
@@ -46,6 +47,7 @@ export const emptyVendorBillForm = (): VendorBillFormValues => ({
     jobNumber: '',
     vendorId: '',
     vendorName: '',
+    invoiceId: '',
     amount: 0,
     currency: 'USD',
     date: new Date().toISOString().split('T')[0],

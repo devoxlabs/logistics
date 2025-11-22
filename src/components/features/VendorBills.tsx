@@ -19,6 +19,8 @@ import {
 import { listVendors } from '@/services/vendors';
 import { VendorProfile } from '@/models/profiles';
 import { formatCurrencyValue, getCurrencyOptions } from '@/lib/currency';
+import { listInvoicesByVendor } from '@/services/invoices';
+import { Invoice } from '@/models/invoices';
 
 export default function VendorBills() {
     const [bills, setBills] = useState<VendorBill[]>([]);
@@ -32,6 +34,10 @@ export default function VendorBills() {
         vendorId: 'all',
         status: 'all',
     });
+    const [vendorInvoices, setVendorInvoices] = useState<Invoice[]>([]);
+    const [invoiceLoading, setInvoiceLoading] = useState(false);
+    const [linkedInvoiceId, setLinkedInvoiceId] = useState('');
+    const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
     useEffect(() => {
         void Promise.all([loadVendors(), loadBills()]);
@@ -69,23 +75,68 @@ export default function VendorBills() {
     const handleFieldChange = <K extends keyof VendorBillFormValues>(field: K, value: VendorBillFormValues[K]) => {
         setFormValues((prev) => ({ ...prev, [field]: value }));
         if (field === 'vendorId') {
-            const vendor = vendors.find((v) => v.id === value);
-            if (vendor) {
-                setFormValues((prev) => ({
-                    ...prev,
-                    vendorId: vendor.id,
-                    vendorName: vendor.vendorName,
-                }));
-            }
-            if (!editMode && !formValues.jobNumber) {
-                setFormValues((prev) => ({
-                    ...prev,
-                    jobNumber: generateVendorJobNumber(),
-                }));
+            if (!value) {
+                setVendorInvoices([]);
+                setLinkedInvoiceId('');
+                setSelectedInvoice(null);
+            } else {
+                const vendor = vendors.find((v) => v.id === value);
+                if (vendor) {
+                    setFormValues((prev) => ({
+                        ...prev,
+                        vendorId: vendor.id,
+                        vendorName: vendor.vendorName,
+                    }));
+                }
+                if (!editMode && !formValues.jobNumber) {
+                    setFormValues((prev) => ({
+                        ...prev,
+                        jobNumber: generateVendorJobNumber(),
+                    }));
+                }
             }
         }
         if (field === 'status' && value === 'paid' && !formValues.paidDate) {
             setFormValues((prev) => ({ ...prev, paidDate: new Date().toISOString().split('T')[0] }));
+        }
+    };
+
+    useEffect(() => {
+        if (!formValues.vendorId) {
+            setVendorInvoices([]);
+            setLinkedInvoiceId('');
+            setSelectedInvoice(null);
+            return;
+        }
+        setInvoiceLoading(true);
+        listInvoicesByVendor(formValues.vendorId)
+            .then((data) => {
+                setVendorInvoices(data);
+                const existing = data.find((invoice) => invoice.id === formValues.invoiceId);
+                setLinkedInvoiceId(existing ? existing.id : '');
+                setSelectedInvoice(existing ?? null);
+            })
+            .catch((error) => console.error('Failed to load vendor invoices', error))
+            .finally(() => setInvoiceLoading(false));
+    }, [formValues.vendorId, formValues.invoiceId]);
+
+    const handleInvoiceSelect = (invoiceId: string) => {
+        setLinkedInvoiceId(invoiceId);
+        if (!invoiceId) {
+            setSelectedInvoice(null);
+            setFormValues((prev) => ({ ...prev, invoiceId: '' }));
+            return;
+        }
+        const invoice = vendorInvoices.find((inv) => inv.id === invoiceId);
+        if (invoice) {
+            setSelectedInvoice(invoice);
+            setFormValues((prev) => ({
+                ...prev,
+                invoiceId: invoice.id,
+                billNumber: invoice.invoiceNumber || prev.billNumber,
+                currency: invoice.currency || prev.currency,
+                amount: invoice.total || prev.amount,
+            }));
         }
     };
 
@@ -96,6 +147,8 @@ export default function VendorBills() {
         setFormValues({
             ...bill,
         });
+        setLinkedInvoiceId(bill.invoiceId || '');
+        setSelectedInvoice(null);
         setEditMode(true);
     };
 
@@ -103,6 +156,9 @@ export default function VendorBills() {
         setFormValues(emptyVendorBillForm());
         setSelectedBillId('');
         setEditMode(false);
+        setLinkedInvoiceId('');
+        setSelectedInvoice(null);
+        setVendorInvoices([]);
     };
 
     const handleSubmit = async (event: React.FormEvent) => {
@@ -248,6 +304,26 @@ export default function VendorBills() {
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-foreground/80 mb-1.5">Bill / Reference # *</label>
+                                <div className="mb-2">
+                                    {invoiceLoading ? (
+                                        <p className="text-[11px] text-slate-500">Loading vendor bills...</p>
+                                    ) : vendorInvoices.length > 0 ? (
+                                        <select
+                                            value={linkedInvoiceId}
+                                            onChange={(e) => handleInvoiceSelect(e.target.value)}
+                                            className="w-full rounded-lg border border-input bg-white px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 mb-2 cursor-pointer"
+                                        >
+                                            <option value="">Link existing vendor bill</option>
+                                            {vendorInvoices.map((invoice) => (
+                                                <option key={invoice.id} value={invoice.id}>
+                                                    {invoice.invoiceNumber} • {formatCurrencyValue(invoice.total, invoice.currency || 'USD')}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : formValues.vendorId ? (
+                                        <p className="text-[11px] text-slate-500">No vendor bills found for this vendor.</p>
+                                    ) : null}
+                                </div>
                                 <input
                                     type="text"
                                     value={formValues.billNumber}
@@ -255,6 +331,11 @@ export default function VendorBills() {
                                     className="w-full rounded-lg border-2 border-input bg-white px-3 py-2 text-sm hover:border-primary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                                     required
                                 />
+                                {selectedInvoice && (
+                                    <p className="text-[11px] text-slate-500 mt-1">
+                                        Linked total: {formatCurrencyValue(selectedInvoice.total, selectedInvoice.currency || 'USD')}
+                                    </p>
+                                )}
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
