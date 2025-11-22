@@ -26,9 +26,6 @@ export type ExpenseFormValues = {
     amount: number;
     currency: string;
     date: string;
-    reference: string;
-    vendorName: string;
-    jobNumber: string;
     description: string;
     status: ExpenseStatus;
     paidDate: string;
@@ -45,9 +42,6 @@ export const emptyExpenseForm = (): ExpenseFormValues => ({
     amount: 0,
     currency: 'USD',
     date: new Date().toISOString().split('T')[0],
-    reference: '',
-    vendorName: '',
-    jobNumber: '',
     description: '',
     status: 'pending',
     paidDate: '',

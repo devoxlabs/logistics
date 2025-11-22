@@ -1,6 +1,7 @@
 import { Invoice, InvoiceStatus, InvoicePartyType } from '@/models/invoices';
 import { convertCurrency } from '@/lib/currency';
-import { Expense, ExpenseCategory } from '@/models/expenses';
+import { Expense, ExpenseCategory, EXPENSE_CATEGORIES } from '@/models/expenses';
+import { VendorBill } from '@/models/vendorBills';
 
 export type DerivedLedgerEntry = {
     id: string;
@@ -15,7 +16,7 @@ export type DerivedLedgerEntry = {
     total: number;
     paid: number;
     outstanding: number;
-    source: 'invoice' | 'expense';
+    source: 'invoice' | 'expense' | 'vendor_bill';
     category?: ExpenseCategory;
 };
 
@@ -81,11 +82,11 @@ export function deriveExpenseEntries(expenses: Expense[], displayCurrency: strin
         return {
             id: expense.id,
             partyType: 'vendor',
-            partyId: expense.vendorName || '',
-            partyName: expense.vendorName || 'Operational Expense',
-            invoiceNumber: expense.reference || `EXP-${expense.category.toUpperCase()}`,
-            jobNumber: expense.jobNumber || '',
-            description: expense.description || expense.reference || 'Logistics Expense',
+            partyId: expense.category,
+            partyName: EXPENSE_CATEGORIES.find((cat) => cat.value === expense.category)?.label || 'Expense',
+            invoiceNumber: `EXP-${expense.date}`,
+            jobNumber: '',
+            description: expense.description || 'General Expense',
             date: expense.date,
             status: expense.status === 'paid' ? 'paid' : 'sent',
             total: amount,
@@ -93,6 +94,30 @@ export function deriveExpenseEntries(expenses: Expense[], displayCurrency: strin
             outstanding,
             source: 'expense',
             category: expense.category,
+        };
+    });
+}
+
+export function deriveVendorBillEntries(bills: VendorBill[], displayCurrency: string): DerivedLedgerEntry[] {
+    return bills.map((bill) => {
+        const amount = convertCurrency(bill.amount || 0, bill.currency || 'USD', displayCurrency);
+        const paid = bill.status === 'paid' ? amount : 0;
+        const outstanding = bill.status === 'paid' ? 0 : amount;
+
+        return {
+            id: bill.id,
+            partyType: 'vendor',
+            partyId: bill.vendorId,
+            partyName: bill.vendorName || 'Vendor',
+            invoiceNumber: bill.billNumber || bill.jobNumber,
+            jobNumber: bill.jobNumber || '',
+            description: bill.description || `Vendor Bill ${bill.billNumber}`,
+            date: bill.date,
+            status: bill.status === 'paid' ? 'paid' : 'sent',
+            total: amount,
+            paid,
+            outstanding,
+            source: 'vendor_bill',
         };
     });
 }

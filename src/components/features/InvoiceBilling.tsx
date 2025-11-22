@@ -11,8 +11,12 @@ import { CustomerProfile, VendorProfile } from '@/models/profiles';
 import FeatureHeader from '@/components/ui/FeatureHeader';
 import { formatCurrencyValue, getCurrencyOptions } from '@/lib/currency';
 
-export default function InvoiceBilling() {
-    const [activeTab, setActiveTab] = useState<'invoice' | 'billing'>('invoice');
+type InvoiceBillingProps = {
+    initialTab?: 'invoice' | 'billing';
+};
+
+export default function InvoiceBilling({ initialTab = 'invoice' }: InvoiceBillingProps) {
+    const [activeTab, setActiveTab] = useState<'invoice' | 'billing'>(initialTab);
     const [view, setView] = useState<'list' | 'create'>('list');
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [customers, setCustomers] = useState<CustomerProfile[]>([]);
@@ -28,6 +32,10 @@ export default function InvoiceBilling() {
     useEffect(() => {
         loadData();
     }, []);
+
+    useEffect(() => {
+        setActiveTab(initialTab);
+    }, [initialTab]);
 
     useEffect(() => {
         setFormValues(emptyInvoiceForm(activeTab === 'invoice' ? 'customer' : 'vendor'));
@@ -77,7 +85,7 @@ export default function InvoiceBilling() {
             const newInvoice = await createInvoice(payload);
             setInvoices((prev) => [newInvoice, ...prev]);
             setFormValues(emptyInvoiceForm(activeTab === 'invoice' ? 'customer' : 'vendor'));
-            setSaveMessage('Invoice created successfully');
+            setSaveMessage(activeTab === 'invoice' ? 'Invoice created successfully' : 'Bill created successfully');
             setView('list');
         } catch (error) {
             console.error('Failed to save invoice', error);
@@ -169,7 +177,7 @@ export default function InvoiceBilling() {
             await updateInvoice(id, payload);
             setInvoices((prev) => prev.map((inv) => (inv.id === id ? updated : inv)));
             setDetailInvoice(updated);
-            setSaveMessage('Invoice updated successfully');
+            setSaveMessage((updated.partyType ?? 'customer') === 'customer' ? 'Invoice updated successfully' : 'Bill updated successfully');
         } catch (error) {
             console.error(error);
         } finally {
@@ -184,7 +192,7 @@ export default function InvoiceBilling() {
                 <button
                     type="button"
                     onClick={() => setActiveTab('invoice')}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border cursor-pointer ${
                         activeTab === 'invoice'
                             ? 'bg-primary text-white border-primary'
                             : 'bg-white text-slate-600 border-slate-200'
@@ -195,7 +203,7 @@ export default function InvoiceBilling() {
                 <button
                     type="button"
                     onClick={() => setActiveTab('billing')}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border cursor-pointer ${
                         activeTab === 'billing'
                             ? 'bg-primary text-white border-primary'
                             : 'bg-white text-slate-600 border-slate-200'
@@ -228,7 +236,7 @@ export default function InvoiceBilling() {
                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>
-                            New Invoice
+                            {activeTab === 'invoice' ? 'New Invoice' : 'New Bill'}
                         </button>
                     ) : (
                         <button
@@ -321,7 +329,7 @@ export default function InvoiceBilling() {
                                                     <button
                                                         type="button"
                                                         onClick={() => openInvoiceDetail(invoice)}
-                                                        className="inline-flex items-center rounded-md border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                                                        className="inline-flex items-center rounded-md border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer"
                                                     >
                                                         View
                                                     </button>
@@ -468,9 +476,11 @@ export default function InvoiceBilling() {
                         <button
                             type="button"
                             onClick={closeInvoiceDetail}
-                            className="rounded-full border border-slate-200 w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50"
+                            className="rounded-full border border-slate-200 w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 cursor-pointer"
                         >
-                            ✕
+                            <svg className="h-4 w-4" viewBox="0 0 24 24" stroke="currentColor" fill="none">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                         </button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -528,7 +538,7 @@ export default function InvoiceBilling() {
                         <button
                             type="button"
                             onClick={closeInvoiceDetail}
-                            className="rounded-md border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                            className="rounded-md border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 cursor-pointer"
                         >
                             Close
                         </button>
@@ -536,7 +546,7 @@ export default function InvoiceBilling() {
                             type="button"
                             onClick={handleDetailStatusSave}
                             disabled={detailSaving}
-                            className="rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold hover:bg-primary/90 disabled:opacity-60"
+                            className="rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                         >
                             {detailSaving ? 'Saving...' : 'Save'}
                         </button>

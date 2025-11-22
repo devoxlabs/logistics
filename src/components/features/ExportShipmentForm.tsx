@@ -14,16 +14,16 @@ import {
     updateShipment,
     generateExportJobNumber,
 } from '@/services/shipments';
-import { listVendors } from '@/services/vendors';
-import { VendorProfile } from '@/models/profiles';
+import { listCustomers } from '@/services/customers';
+import { CustomerProfile } from '@/models/profiles';
 import FeatureHeader from '@/components/ui/FeatureHeader';
-import { listInvoicesByVendor, updateInvoice } from '@/services/invoices';
+import { listInvoicesByCustomer, updateInvoice } from '@/services/invoices';
 import { Invoice } from '@/models/invoices';
 import { convertCurrency, formatCurrencyValue, getCurrencyOptions } from '@/lib/currency';
 
 export default function ExportShipmentForm() {
     const [shipments, setShipments] = useState<ExportShipment[]>([]);
-    const [vendors, setVendors] = useState<VendorProfile[]>([]);
+    const [customers, setCustomers] = useState<CustomerProfile[]>([]);
     const [formValues, setFormValues] = useState<ExportShipmentFormValues>(
         emptyExportShipmentForm()
     );
@@ -32,7 +32,7 @@ export default function ExportShipmentForm() {
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
     const [editMode, setEditMode] = useState(false);
     const [selectedShipmentId, setSelectedShipmentId] = useState('');
-    const [vendorInvoices, setVendorInvoices] = useState<Invoice[]>([]);
+    const [customerInvoices, setCustomerInvoices] = useState<Invoice[]>([]);
     const [linkedInvoiceId, setLinkedInvoiceId] = useState('');
     const [invoiceLoading, setInvoiceLoading] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
@@ -42,7 +42,7 @@ export default function ExportShipmentForm() {
         const invoice =
             (selectedInvoice && selectedInvoice.id === values.invoiceId
                 ? selectedInvoice
-                : vendorInvoices.find((inv) => inv.id === values.invoiceId)) || null;
+                : customerInvoices.find((inv) => inv.id === values.invoiceId)) || null;
         if (!invoice) return;
 
         const shipmentCurrency = values.currency || 'USD';
@@ -78,7 +78,7 @@ export default function ExportShipmentForm() {
         const { id, ...payload } = updatedInvoice;
         await updateInvoice(id, payload);
 
-        setVendorInvoices((prev) =>
+        setCustomerInvoices((prev) =>
             prev.map((item) => (item.id === id ? updatedInvoice : item))
         );
         if (selectedInvoice?.id === id) {
@@ -91,12 +91,12 @@ export default function ExportShipmentForm() {
 
     const loadData = async () => {
         try {
-            const [shipmentsData, vendorsData] = await Promise.all([
+            const [shipmentsData, customersData] = await Promise.all([
                 listExportShipments(),
-                listVendors(),
+                listCustomers(),
             ]);
             setShipments(shipmentsData);
-            setVendors(vendorsData);
+            setCustomers(customersData);
         } catch (error) {
             console.error('Failed to load data', error);
         }
@@ -105,17 +105,17 @@ export default function ExportShipmentForm() {
     const handleFieldChange = (field: keyof ExportShipmentFormValues, value: string) => {
         setFormValues((prev) => ({ ...prev, [field]: value }));
 
-        // Auto-populate shipper name when shipper is selected
+        // Auto-populate customer/shipper info when customer is selected
         if (field === 'shipperId') {
             setSelectedInvoice(null);
             setLinkedInvoiceId('');
-            const vendor = vendors.find((v) => v.id === value);
-            if (vendor) {
+            const customer = customers.find((c) => c.id === value);
+            if (customer) {
                 setFormValues((prev) => ({
                     ...prev,
                     shipperId: value,
-                    shipperName: vendor.vendorName,
-                    shipperAddress: vendor.address,
+                    shipperName: customer.customerName,
+                    shipperAddress: customer.address,
                     invoiceId: '',
                     invoiceNumber: '',
                 }));
@@ -171,22 +171,22 @@ export default function ExportShipmentForm() {
 
     useEffect(() => {
         if (!formValues.shipperId) {
-            setVendorInvoices([]);
+            setCustomerInvoices([]);
             setLinkedInvoiceId('');
             setSelectedInvoice(null);
             return;
         }
         setInvoiceLoading(true);
-        listInvoicesByVendor(formValues.shipperId)
+        listInvoicesByCustomer(formValues.shipperId)
             .then((data) => {
-                setVendorInvoices(data);
+                setCustomerInvoices(data);
                 const existing = data.find((invoice) => invoice.id === formValues.invoiceId);
                 setSelectedInvoice(existing ?? null);
                 setLinkedInvoiceId(existing ? existing.id : '');
             })
-            .catch((error) => console.error('Failed to load vendor bills', error))
+            .catch((error) => console.error('Failed to load customer invoices', error))
             .finally(() => setInvoiceLoading(false));
-    }, [formValues.shipperId, formValues.invoiceId, setInvoiceLoading, setLinkedInvoiceId, setVendorInvoices, setSelectedInvoice]);
+    }, [formValues.shipperId, formValues.invoiceId]);
 
     const handleInvoiceSelect = (invoiceId: string) => {
         setLinkedInvoiceId(invoiceId);
@@ -198,7 +198,7 @@ export default function ExportShipmentForm() {
             }));
             return;
         }
-        const invoice = vendorInvoices.find((inv) => inv.id === invoiceId);
+        const invoice = customerInvoices.find((inv) => inv.id === invoiceId);
         if (invoice) {
             setSelectedInvoice(invoice);
             setFormValues((prev) => ({
@@ -221,7 +221,7 @@ export default function ExportShipmentForm() {
             return;
         }
         if (!formValues.shipperId) {
-            setSaveError('Shipper is required');
+            setSaveError('Customer is required');
             return;
         }
 
@@ -250,7 +250,7 @@ export default function ExportShipmentForm() {
             setFormValues(emptyExportShipmentForm());
             setEditMode(false);
             setSelectedShipmentId('');
-            setVendorInvoices([]);
+            setCustomerInvoices([]);
             setLinkedInvoiceId('');
             setSelectedInvoice(null);
         } catch (error) {
@@ -267,7 +267,7 @@ export default function ExportShipmentForm() {
         setSaveMessage(null);
         setEditMode(false);
         setSelectedShipmentId('');
-        setVendorInvoices([]);
+        setCustomerInvoices([]);
         setLinkedInvoiceId('');
         setSelectedInvoice(null);
     };
@@ -457,35 +457,35 @@ export default function ExportShipmentForm() {
                         </div>
                     </div>
 
-                    {/* Section 2: Shipper & Consignee Details */}
+                    {/* Section 2: Customer & Consignee Details */}
                     <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
                         <h3 className="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
                             <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-white text-xs">
                                 2
                             </span>
-                            Shipper & Consignee Details
+                            Customer & Consignee Details
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-foreground/80 mb-1.5">
-                                    Shipper *
+                                    Customer *
                                 </label>
                                 <select
                                     value={formValues.shipperId}
                                     onChange={(e) => handleFieldChange('shipperId', e.target.value)}
                                     className="w-full rounded-lg border-2 border-input bg-white px-4 py-2.5 text-sm hover:border-primary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                                 >
-                                    <option value="">Select Shipper</option>
-                                    {vendors.map((vendor) => (
-                                        <option key={vendor.id} value={vendor.id}>
-                                            {vendor.vendorName}
+                                    <option value="">Select Customer</option>
+                                    {customers.map((customer) => (
+                                        <option key={customer.id} value={customer.id}>
+                                            {customer.customerName}
                                         </option>
                                     ))}
                                 </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-foreground/80 mb-1.5">
-                                    Shipper Address
+                                    Customer Address
                                 </label>
                                 <input
                                     type="text"
@@ -774,22 +774,22 @@ export default function ExportShipmentForm() {
                                 </label>
                                 <div className="mb-2">
                                     {invoiceLoading ? (
-                                        <p className="text-[11px] text-slate-500">Loading bills...</p>
-                                    ) : vendorInvoices.length > 0 ? (
+                                        <p className="text-[11px] text-slate-500">Loading invoices...</p>
+                                    ) : customerInvoices.length > 0 ? (
                                         <select
                                             value={linkedInvoiceId}
                                             onChange={(e) => handleInvoiceSelect(e.target.value)}
                                             className="w-full rounded-lg border border-input bg-white px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 mb-2 cursor-pointer"
                                         >
-                                            <option value="">Link existing bill</option>
-                                            {vendorInvoices.map((invoice) => (
+                                            <option value="">Link existing invoice</option>
+                                            {customerInvoices.map((invoice) => (
                                                 <option key={invoice.id} value={invoice.id}>
                                                     {invoice.invoiceNumber} • {formatCurrencyValue(invoice.total, invoice.currency || 'USD')}
                                                 </option>
                                             ))}
                                         </select>
                                     ) : formValues.shipperId ? (
-                                        <p className="text-[11px] text-slate-500">No bills found for this vendor.</p>
+                                        <p className="text-[11px] text-slate-500">No invoices found for this customer.</p>
                                     ) : null}
                                 </div>
                                 <input

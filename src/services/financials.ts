@@ -4,6 +4,7 @@
 import { ProfitLossData, BalanceSheetData, emptyProfitLoss, emptyBalanceSheet } from '@/models/financials';
 import { listInvoices } from '@/services/invoices';
 import { listExpenses } from '@/services/expenses';
+import { listVendorBills } from '@/services/vendorBills';
 import { convertCurrency } from '@/lib/currency';
 
 // Generate Profit & Loss statement for a date range
@@ -99,7 +100,7 @@ export async function generateProfitLoss(
 
 // Generate Balance Sheet as of a specific date
 export async function generateBalanceSheet(asOfDate: string): Promise<BalanceSheetData> {
-    const [invoices, expenses] = await Promise.all([listInvoices(), listExpenses()]);
+    const [invoices, expenses, vendorBills] = await Promise.all([listInvoices(), listExpenses(), listVendorBills()]);
 
     const data = emptyBalanceSheet();
     data.asOfDate = asOfDate;
@@ -112,30 +113,26 @@ export async function generateBalanceSheet(asOfDate: string): Promise<BalanceShe
             return sum + Math.max(total - paid, 0);
         }, 0);
 
-    const vendorPayables = invoices
-        .filter((invoice) => (invoice.partyType ?? 'customer') === 'vendor')
-        .reduce((sum, invoice) => {
-            const total = convertCurrency(invoice.total || 0, invoice.currency || 'USD', 'USD');
-            const paid = convertCurrency(invoice.paidAmount || 0, invoice.currency || 'USD', 'USD');
-            return sum + Math.max(total - paid, 0);
-        }, 0);
+    const vendorPayables = vendorBills.reduce((sum, bill) => {
+        const total = convertCurrency(bill.amount || 0, bill.currency || 'USD', 'USD');
+        return sum + (bill.status === 'paid' ? 0 : total);
+    }, 0);
 
-    const outstandingExpenses = expenses.reduce((sum, expense) => {
+    const accruedExpenses = expenses.reduce((sum, expense) => {
         if (expense.status === 'paid') return sum;
         const total = convertCurrency(expense.amount || 0, expense.currency || 'USD', 'USD');
         return sum + total;
     }, 0);
 
-    const payables = vendorPayables + outstandingExpenses;
+    const payables = vendorPayables;
 
     data.assets.currentAssets.accountsReceivable = receivables;
     data.assets.currentAssets.total = receivables;
     data.assets.totalAssets = receivables;
     data.liabilities.currentLiabilities.accountsPayable = payables;
-    data.liabilities.currentLiabilities.total = payables;
-    data.liabilities.totalLiabilities = payables;
+    data.liabilities.currentLiabilities.accruedExpenses = accruedExpenses;
 
-    const equityValue = receivables - payables;
+    const equityValue = receivables - payables - accruedExpenses;
     data.equity.currentYearEarnings = equityValue;
     data.equity.totalEquity = equityValue;
 

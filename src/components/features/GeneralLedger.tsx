@@ -6,14 +6,17 @@ import FeatureHeader from '@/components/ui/FeatureHeader';
 import { listInvoices } from '@/services/invoices';
 import { Invoice } from '@/models/invoices';
 import { formatCurrencyValue, getCurrencyOptions } from '@/lib/currency';
-import { deriveExpenseEntries, deriveLedgerEntries, DerivedLedgerEntry } from '@/lib/ledger';
+import { deriveExpenseEntries, deriveLedgerEntries, deriveVendorBillEntries, DerivedLedgerEntry } from '@/lib/ledger';
 import { listExpenses } from '@/services/expenses';
 import { Expense, EXPENSE_CATEGORIES } from '@/models/expenses';
+import { listVendorBills } from '@/services/vendorBills';
+import { VendorBill } from '@/models/vendorBills';
 
 type LedgerView = 'receivable' | 'payable' | 'expenses';
 
 export default function GeneralLedger() {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [vendorBills, setVendorBills] = useState<VendorBill[]>([]);
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [loading, setLoading] = useState(true);
     const [displayCurrency, setDisplayCurrency] = useState('USD');
@@ -22,9 +25,10 @@ export default function GeneralLedger() {
     const loadData = async () => {
         try {
             setLoading(true);
-            const [invoiceData, expenseData] = await Promise.all([listInvoices(), listExpenses()]);
+            const [invoiceData, expenseData, vendorBillData] = await Promise.all([listInvoices(), listExpenses(), listVendorBills()]);
             setInvoices(invoiceData);
             setExpenses(expenseData);
+            setVendorBills(vendorBillData);
         } catch (error) {
             console.error('Failed to load ledger data', error);
         } finally {
@@ -37,11 +41,8 @@ export default function GeneralLedger() {
     }, []);
 
     const filteredInvoices = useMemo(
-        () =>
-            invoices.filter(
-                (inv) => (inv.partyType ?? 'customer') === (view === 'payable' ? 'vendor' : 'customer'),
-            ),
-        [invoices, view],
+        () => invoices.filter((inv) => (inv.partyType ?? 'customer') === 'customer'),
+        [invoices],
     );
 
     const invoiceEntries = useMemo(
@@ -49,12 +50,18 @@ export default function GeneralLedger() {
         [filteredInvoices, displayCurrency],
     );
 
+    const vendorEntries = useMemo(
+        () => deriveVendorBillEntries(vendorBills, displayCurrency),
+        [vendorBills, displayCurrency],
+    );
+
     const expenseEntries = useMemo(
         () => deriveExpenseEntries(expenses, displayCurrency),
         [expenses, displayCurrency],
     );
 
-    const activeEntries = view === 'expenses' ? expenseEntries : invoiceEntries;
+    const activeEntries =
+        view === 'receivable' ? invoiceEntries : view === 'payable' ? vendorEntries : expenseEntries;
 
     let runningBalance = 0;
     const entriesWithBalance = activeEntries.map((entry) => {
@@ -137,19 +144,37 @@ export default function GeneralLedger() {
             <div className="border-b border-slate-100 px-4 py-4 bg-gradient-to-br from-slate-50 to-white">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                     <SummaryCard
-                        label={view === 'expenses' ? 'Total Expense' : 'Total Debit'}
+                        label={
+                            view === 'expenses'
+                                ? 'Total Expense'
+                                : view === 'payable'
+                                    ? 'Total Bills'
+                                    : 'Total Invoiced'
+                        }
                         value={stats.debit}
                         tone="rose"
                         currency={displayCurrency}
                     />
                     <SummaryCard
-                        label={view === 'expenses' ? 'Settled Expense' : 'Total Credit'}
+                        label={
+                            view === 'expenses'
+                                ? 'Settled Expense'
+                                : view === 'payable'
+                                    ? 'Settled Bills'
+                                    : 'Total Collected'
+                        }
                         value={stats.credit}
                         tone="emerald"
                         currency={displayCurrency}
                     />
                     <SummaryCard
-                        label={view === 'expenses' ? 'Unsettled Expense' : 'Outstanding Balance'}
+                        label={
+                            view === 'expenses'
+                                ? 'Unsettled Expense'
+                                : view === 'payable'
+                                    ? 'Outstanding Payable'
+                                    : 'Outstanding Balance'
+                        }
                         value={Math.abs(netBalance)}
                         tone={netBalance >= 0 ? 'slate' : 'rose'}
                         currency={displayCurrency}

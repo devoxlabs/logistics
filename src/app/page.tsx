@@ -17,6 +17,7 @@ import VendorLedger from '@/components/features/VendorLedger';
 import GeneralLedger from '@/components/features/GeneralLedger';
 import ProfitAndLoss from '@/components/features/ProfitAndLoss';
 import BalanceSheetReport from '@/components/features/BalanceSheetReport';
+import VendorBills from '@/components/features/VendorBills';
 import Expenses from '@/components/features/Expenses';
 import PageTransition from '@/components/ui/PageTransition';
 
@@ -34,6 +35,7 @@ const TAB_TITLES: Record<string, string> = {
   'customer-ledger': 'Customer Ledger',
   'vendor-ledger': 'Vendor Ledger',
   'general-ledger': 'General Ledger',
+  'vendor-bills': 'Vendor Bills',
   expenses: 'Expenses',
   'profit-and-loss': 'Profit & Loss',
   'balance-sheet': 'Balance Sheet',
@@ -110,15 +112,17 @@ export default function Home() {
             ) : selectedId === 'customer-group-ledger' ? (
               <CustomerGroupLedger />
             ) : selectedId === 'invoice' ? (
-              <InvoiceBilling />
+              <InvoiceBilling initialTab="invoice" />
             ) : selectedId === 'billing' ? (
-              <InvoiceBilling />
+              <InvoiceBilling initialTab="billing" />
             ) : selectedId === 'customer-ledger' ? (
               <CustomerLedger />
             ) : selectedId === 'vendor-ledger' ? (
               <VendorLedger />
             ) : selectedId === 'general-ledger' ? (
               <GeneralLedger />
+            ) : selectedId === 'vendor-bills' ? (
+              <VendorBills />
             ) : selectedId === 'expenses' ? (
               <Expenses />
             ) : selectedId === 'profit-and-loss' ? (
