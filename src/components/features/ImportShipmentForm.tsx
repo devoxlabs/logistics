@@ -129,19 +129,19 @@ export default function ImportShipmentForm() {
             field === 'freightCharges' ||
             field === 'insuranceCharges' ||
             field === 'customsDuty' ||
-            field === 'otherCharges'
+            field === 'otherCharges' ||
+            field === 'logisticCharges'
         ) {
-            const freight = parseFloat(formValues.freightCharges) || 0;
-            const insurance = parseFloat(formValues.insuranceCharges) || 0;
-            const duty = parseFloat(formValues.customsDuty) || 0;
-            const other = parseFloat(formValues.otherCharges) || 0;
-            const newValue = parseFloat(value) || 0;
+            const getValue = (key: keyof ImportShipmentFormValues) =>
+                parseFloat((field === key ? value : (formValues[key] as string)) || '0') || 0;
 
-            let total = freight + insurance + duty + other;
-            if (field === 'freightCharges') total = newValue + insurance + duty + other;
-            else if (field === 'insuranceCharges') total = freight + newValue + duty + other;
-            else if (field === 'customsDuty') total = freight + insurance + newValue + other;
-            else if (field === 'otherCharges') total = freight + insurance + duty + newValue;
+            const freight = getValue('freightCharges');
+            const insurance = getValue('insuranceCharges');
+            const duty = getValue('customsDuty');
+            const logistics = getValue('logisticCharges');
+            const other = getValue('otherCharges');
+
+            const total = freight + insurance + duty + logistics + other;
 
             setFormValues((prev) => ({ ...prev, totalCharges: total.toFixed(2) }));
         }
@@ -175,6 +175,7 @@ export default function ImportShipmentForm() {
                 freightCharges: shipment.freightCharges?.toString() || '0',
                 insuranceCharges: shipment.insuranceCharges?.toString() || '0',
                 customsDuty: shipment.customsDuty?.toString() || '0',
+                logisticCharges: shipment.logisticCharges?.toString() || '0',
                 otherCharges: shipment.otherCharges?.toString() || '0',
                 totalCharges: shipment.totalCharges?.toString() || '0',
             });
@@ -801,6 +802,18 @@ export default function ImportShipmentForm() {
                                     step="0.01"
                                     value={formValues.otherCharges}
                                     onChange={(e) => handleFieldChange('otherCharges', e.target.value)}
+                                    className="w-full rounded-lg border-2 border-input bg-white px-4 py-2.5 text-sm hover:border-primary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-foreground/80 mb-1.5">
+                                    Logistic Charges (Company)
+                                </label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={formValues.logisticCharges}
+                                    onChange={(e) => handleFieldChange('logisticCharges', e.target.value)}
                                     className="w-full rounded-lg border-2 border-input bg-white px-4 py-2.5 text-sm hover:border-primary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                                 />
                             </div>

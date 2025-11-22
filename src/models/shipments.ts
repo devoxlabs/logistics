@@ -59,6 +59,7 @@ export type ImportShipmentFormValues = {
     freightCharges: string;
     insuranceCharges: string;
     customsDuty: string;
+    logisticCharges: string;
     otherCharges: string;
     totalCharges: string; // Auto-calculated
 
@@ -128,6 +129,7 @@ export type ExportShipmentFormValues = {
     insuranceCharges: string;
     handlingCharges: string;
     documentationFees: string;
+    logisticCharges: string;
     otherCharges: string;
     totalCharges: string;
 
@@ -178,6 +180,7 @@ export const emptyImportShipmentForm = (): ImportShipmentFormValues => ({
     freightCharges: '',
     insuranceCharges: '',
     customsDuty: '',
+    logisticCharges: '',
     otherCharges: '',
     totalCharges: '',
     status: 'Booked',
@@ -223,6 +226,7 @@ export const emptyExportShipmentForm = (): ExportShipmentFormValues => ({
     insuranceCharges: '',
     handlingCharges: '',
     documentationFees: '',
+    logisticCharges: '',
     otherCharges: '',
     totalCharges: '',
     status: 'Booked',
